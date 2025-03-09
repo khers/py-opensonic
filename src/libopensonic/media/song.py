@@ -107,5 +107,5 @@ class Song(MediaBase):
     type = property(lambda s: s._type)
     year = property(lambda s: s._year)
     disc_number = property(lambda s: s._disc_number)
-    transcoded_content_type = property(lambda s: s._transcoded_contrant_type)
+    transcoded_content_type = property(lambda s: s._transcoded_content_type)
     transcoded_suffix = property(lambda s: s._transcoded_suffix)
