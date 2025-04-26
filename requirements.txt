@@ -1,1 +1,2 @@
 requests>=2.31.0
+mashumaro>=3.15

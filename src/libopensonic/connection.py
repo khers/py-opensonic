@@ -28,6 +28,7 @@ from .media.song import (Song)
 from .media.album import (Album, AlbumInfo)
 from .media.index import Index
 from .media.playlist import Playlist
+from .media.media_types import Child
 
 API_VERSION = '1.16.1'
 
@@ -1540,6 +1541,27 @@ class Connection:
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
         return Song(dres['song'])
+
+
+    def getSong2(self, sid):
+        """
+        since 1.8.0
+
+        Returns the info for a song.  This method uses the ID3
+        tags for organization
+
+        sid:str      The song ID
+
+        Returns a media.Song
+        """
+        methodName = 'getSong'
+
+        q = self._getQueryDict({'id': sid})
+
+        res = self._doRequest(methodName, q)
+        dres = self._handleInfoRes(res)
+        self._checkStatus(dres)
+        return Child(**dres['song'])
 
 
     def getVideos(self):
