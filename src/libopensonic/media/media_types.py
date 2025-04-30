@@ -501,7 +501,7 @@ class SearchResult2(DataItem):
     https://opensubsonic.netlify.app/docs/responses/searchresult2/
     """
     artist                : list[Artist] = None
-    album                 : list[Album] = None
+    album                 : list[Child] = None
     song                  : list[Child] = None
 
 
