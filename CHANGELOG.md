@@ -1,3 +1,13 @@
+##6.0.0
+
+Major changes. In this update we move to using dataclasses and the mashumaro
+serialization mixins to better model the data objects we exchange with the server.
+We now have a response type in media.media_types.py for every object that can be
+returned according to the open subsonic spec. We also add type information to the
+Connection class and its member methods.
+
+This is a breaking change and will require users to update the objects used.
+
 ##5.3.1
 
 Silly typo in song.py

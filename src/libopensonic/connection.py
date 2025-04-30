@@ -18,35 +18,36 @@ along with py-opensonic.  If not, see <http://www.gnu.org/licenses/>
 from netrc import netrc
 from hashlib import md5
 import os
-import requests
+from warnings import deprecated
+
+from requests import get, post, Response
 
 from . import errors
-from .media.podcast_channel import PodcastChannel
-from .media.podcast_channel import PodcastEpisode
-from .media.artist import (Artist, ArtistInfo)
-from .media.song import (Song)
-from .media.album import (Album, AlbumInfo)
-from .media.index import Index
-from .media.playlist import Playlist
-from .media.media_types import Child
+from .media.media_types import (Album, AlbumID3, AlbumInfo, ArtistID3, ArtistInfo, ArtistInfo2,
+                                Artists, Bookmark, ChatMessage, Child, Directory, Error, Genre,
+                                Indexes, InternetRadioStation, JukeboxPlaylist, JukeboxStatus,
+                                Lyrics, MusicFolder, NowPlayingEntry, OpenSubsonicExtension,
+                                Playlist, PlayQueue, PodcastChannel, PodcastEpisode, ScanStatus,
+                                SearchResult2, SearchResult3, Share, Starred, Starred2,
+                                StructuredLyrics, User)
 
 API_VERSION = '1.16.1'
 
 
-def pretty_print_post(req):
+def pretty_print_post(req: str) -> None:
     print('{}\n{}\r\n{}\r\n\r\n{}'.format(
         '-----------START-----------',
         req.method + ' ' + req.url,
-        '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+        '\r\n'.join(f'{k}: {v}' for k, v in req.headers.items()),
         req.body,
     ))
 
 
-
 class Connection:
-    def __init__(self, baseUrl, username=None, password=None, port=4040,
-            serverPath='', appName='py-opensonic', apiVersion=API_VERSION,
-            insecure=False, useNetrc=None, legacyAuth=False, useGET=False, useViews=True):
+    def __init__(self, baseUrl: str, username: str=None, password:str=None,
+                port: int=4040, serverPath: str='', appName: str='py-opensonic',
+                apiVersion: str=API_VERSION, insecure: bool=False, useNetrc: str=None,
+                legacyAuth: bool=False, useGET: bool=False, useViews: bool=True):
         """
         This will create a connection to your subsonic server
 
@@ -135,7 +136,7 @@ class Connection:
 
 
     # Properties
-    def setBaseUrl(self, url):
+    def setBaseUrl(self, url: str) -> None:
         self._baseUrl = url
         if '://' in url:
             self._hostname = url.split('://')[1].strip()
@@ -144,17 +145,17 @@ class Connection:
     baseUrl = property(lambda s: s._baseUrl, setBaseUrl)
 
 
-    def setPort(self, port):
-        self._port = int(port)
+    def setPort(self, port: int) -> None:
+        self._port = port
     port = property(lambda s: s._port, setPort)
 
 
-    def setUsername(self, username):
+    def setUsername(self, username: str) -> None:
         self._username = username
     username = property(lambda s: s._username, setUsername)
 
 
-    def setPassword(self, password):
+    def setPassword(self, password: str) -> None:
         self._rawPass = password
         # Redo the opener with the new creds
     password = property(lambda s: s._rawPass, setPassword)
@@ -163,12 +164,12 @@ class Connection:
     apiVersion = property(lambda s: s._apiVersion)
 
 
-    def setAppName(self, appName):
+    def setAppName(self, appName: str) -> None:
         self._appName = appName
     appName = property(lambda s: s._appName, setAppName)
 
 
-    def setServerPath(self, path):
+    def setServerPath(self, path: str) -> None:
         sep = ''
         if path != '' and not path.endswith('/'):
             sep = '/'
@@ -176,27 +177,29 @@ class Connection:
     serverPath = property(lambda s: s._serverPath, setServerPath)
 
 
-    def setInsecure(self, insecure):
+    def setInsecure(self, insecure: bool) -> None:
         self._insecure = insecure
     insecure = property(lambda s: s._insecure, setInsecure)
 
 
-    def setLegacyAuth(self, lauth):
+    def setLegacyAuth(self, lauth: bool) -> None:
         self._legacyAuth = lauth
     legacyAuth = property(lambda s: s._legacyAuth, setLegacyAuth)
 
 
-    def setGET(self, get):
+    def setGET(self, get: bool) -> None:
         self._useGET = get
     useGET = property(lambda s: s._useGET, setGET)
 
 
     # API methods
-    def ping(self):
+    def ping(self) -> bool:
         """
         since: 1.0.0
 
-        Returns a boolean True if the server is alive, False otherwise
+        https://opensubsonic.netlify.app/docs/endpoints/ping/
+
+        Returns a boolean True if the server is alive, raises the returned error
         """
         methodName = 'ping'
 
@@ -205,14 +208,17 @@ class Connection:
         if dres['status'] == 'ok':
             return True
         elif dres['status'] == 'failed':
-            exc = errors.getExcByCode(dres['error']['code'])
-            raise exc(dres['error']['message'])
+            err = Error.from_dict(dres['error'])
+            exc = errors.getExcByCode(err.code)
+            raise exc(err.message)
         return False
 
 
-    def getLicense(self):
+    def getLicense(self) -> dict:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getlicense/
 
         Gets details related to the software license
 
@@ -234,40 +240,37 @@ class Connection:
         return dres
     
 
-    def getOpenSubsonicExtensions(self):
+    def getOpenSubsonicExtensions(self) -> OpenSubsonicExtension:
         """
         since OpenSubsonic 1
 
+        https://opensubsonic.netlify.app/docs/endpoints/getopensubsonicextensions/
+
         List the OpenSubsonic extensions supported by this server.
 
-        Returns a dict like the following:
-        {u'openSubsonicExtensions': [
-            {u'name': u'template',
-             u'versions': [1,2]},
-            {u'name': u'transcodeOffset',
-             u'versions': [1]}]
-        }
+        Returns a list of media.OpenSubsonicExtenstion
         """
         methodName = 'getOpenSubsonicExtensions'
 
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        print(dres)
+        return [OpenSubsonicExtension.from_dict(o) for o in dres['openSubsonicExtensions']]
 
 
-    def getScanStatus(self):
+    def getScanStatus(self) -> ScanStatus:
         """
         since: 1.15.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getscanstatus/
 
         returns the current status for media library scanning.
         takes no extra parameters.
 
-        returns a dict like the following:
+        returns a media.ScanStatus
 
-        {'status': 'ok', 'version': '1.15.0',
-        'scanstatus': {'scanning': true, 'count': 4680}}
-
+        'scanning' changes to false when a scan is complete
         'count' is the total number of items to be scanned
         """
         methodName = 'getScanStatus'
@@ -275,20 +278,19 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return ScanStatus.from_dict(dres['scanstatus'])
 
 
-    def startScan(self):
+    def startScan(self) -> ScanStatus:
         """
         since: 1.15.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/startscan/
 
         Initiates a rescan of the media libraries.
         Takes no extra parameters.
 
-        returns a dict like the following:
-
-        {'status': 'ok', 'version': '1.15.0',
-        'scanstatus': {'scanning': true, 'count': 0}}
+        returns a media.ScanStatus
 
         'scanning' changes to false when a scan is complete
         'count' starts a 0 and ends at the total number of items scanned
@@ -299,54 +301,48 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return ScanStatus.from_dict(dres['scanstatus'])
 
 
-    def getMusicFolders(self):
+    def getMusicFolders(self) -> list[MusicFolder]:
         """
         since: 1.0.0
 
+        https://opensubsonic.netlify.app/docs/endpoints/getmusicfolders/
+
         Returns all configured music folders
 
-        Returns a dict like the following:
-
-        {u'musicFolders': {u'musicFolder': [{u'id': 0, u'name': u'folder1'},
-                                    {u'id': 1, u'name': u'folder2'},
-                                    {u'id': 2, u'name': u'folder3'}]},
-         u'status': u'ok',
-         u'version': u'1.5.0',
-         u'xmlns': u'http://subsonic.org/restapi'}
+        Returns a List of media.MusicFolder
         """
         methodName = 'getMusicFolders'
 
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [MusicFolder.from_dict(f) for f in dres["musicFolders"]]
 
 
-    def getNowPlaying(self):
+    def getNowPlaying(self) -> list[NowPlayingEntry]:
         """
         since: 1.0.0
 
         Returns what is currently being played by all users
 
-        Returns a dict of username string to media.Album
+        Returns a list of media.NowPlayingEntry
         """
         methodName = 'getNowPlaying'
 
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        playing = {}
-        for entry in dres['nowPlaying']['entry']:
-            playing[entry['username']] = Song(entry)
-        return playing
+        return [NowPlayingEntry.from_dict(n) for n in dres['nowPlaying']['entry']]
 
 
-    def getIndexes(self, musicFolderId=None, ifModifiedSince=0):
+    def getIndexes(self, musicFolderId: int=None, ifModifiedSince: int=None) -> Indexes:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getindexes/
 
         Returns an indexed structure of all artists
 
@@ -357,7 +353,7 @@ class Connection:
                                 collection has changed since the given
                                 unix timestamp
 
-        Returns a list of media.Index
+        Returns a media.Indexes
 
         """
         methodName = 'getIndexes'
@@ -368,13 +364,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        indices = [Index(entry) for entry in dres['indexes']['index']]
-        return indices
+        return Indexes.from_dict(dres['indexes'])
 
 
-    def getMusicDirectory(self, mid):
+    def getMusicDirectory(self, mid: str) -> Directory:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getindexes/ 
 
         Returns a listing of all files in a music directory.  Typically used
         to get a list of albums for an artist or list of songs for an album.
@@ -383,95 +380,34 @@ class Connection:
                     folder.  Obtained via calls to getIndexes or
                     getMusicDirectory.  REQUIRED
 
-        Returns a dict like the following:
-
-        {u'directory': {u'child': [{u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'223484',
-                            u'id': u'329084',
-                            u'isDir': True,
-                            u'parent': u'234823940',
-                            u'title': u'Beats, Rhymes And Life'},
-                           {u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'234823794',
-                            u'id': u'238472893',
-                            u'isDir': True,
-                            u'parent': u'2308472938',
-                            u'title': u'Midnight Marauders'},
-                           {u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'39284792374',
-                            u'id': u'983274892',
-                            u'isDir': True,
-                            u'parent': u'9823749',
-                            u'title': u"People's Instinctive Travels And The Paths Of Rhythm"},
-                           {u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'289347293',
-                            u'id': u'3894723934',
-                            u'isDir': True,
-                            u'parent': u'9832942',
-                            u'title': u'The Anthology'},
-                           {u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'923847923',
-                            u'id': u'29834729',
-                            u'isDir': True,
-                            u'parent': u'2934872893',
-                            u'title': u'The Love Movement'},
-                           {u'artist': u'A Tribe Called Quest',
-                            u'coverArt': u'9238742893',
-                            u'id': u'238947293',
-                            u'isDir': True,
-                            u'parent': u'9432878492',
-                            u'title': u'The Low End Theory'}],
-                u'id': u'329847293',
-                u'name': u'A Tribe Called Quest'},
-         u'status': u'ok',
-         u'version': u'1.5.0',
-         u'xmlns': u'http://subsonic.org/restapi'}
+        Returns a media.Directory
         """
         methodName = 'getMusicDirectory'
 
         res = self._doRequest(methodName, {'id': mid})
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return Directory.from_dict(dres['directory'])
 
 
+    @deprecated("The search method has been deprecated since 1.4.0, use search[2|3] instead")
     def search(self, artist=None, album=None, title=None, any=None,
             count=20, offset=0, newerThan=None):
         """
         since: 1.0.0
 
         DEPRECATED SINCE API 1.4.0!  USE search2() INSTEAD!
-
-        Returns a listing of files matching the given search criteria.
-        Supports paging with offset
-
-        artist:str      Search for artist
-        album:str       Search for album
-        title:str       Search for title of song
-        any:str         Search all fields
-        count:int       Max number of results to return [default: 20]
-        offset:int      Search result offset.  For paging [default: 0]
-        newerThan:int   Return matches newer than this timestamp
         """
-        if artist == album == title == any == None:
-            raise errors.ArgumentError('Invalid search.  You must supply search '
-                'criteria')
-        methodName = 'search'
-
-        q = self._getQueryDict({'artist': artist, 'album': album,
-            'title': title, 'any': any, 'count': count, 'offset': offset,
-            'newerThan': self._ts2milli(newerThan)})
-
-        res = self._doRequest(methodName, q)
-        dres = self._handleInfoRes(res)
-        self._checkStatus(dres)
-        return dres
+        raise NotImplementedError("search is deprecated in favor of search2 or search3")
 
 
-    def search2(self, query, artistCount=20, artistOffset=0, albumCount=20,
-            albumOffset=0, songCount=20, songOffset=0, musicFolderId=None):
+    def search2(self, query: str, artistCount: int=20, artistOffset: int=0,
+                albumCount: int=20, albumOffset: int=0, songCount: int=20,
+                songOffset: int=0, musicFolderId: int=None) -> SearchResult2:
         """
         since: 1.4.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/search2/
 
         Returns albums, artists and songs matching the given search criteria.
         Supports paging through the result.
@@ -486,8 +422,7 @@ class Connection:
         musicFolderId:int   Only return dresults from the music folder
                             with the given ID. See getMusicFolders
 
-        Returns a dict containing 3 keys, 'artists', 'albums', and 'songs' with each
-        holding a list of media.Artist, media.Album, or media.Song respectively
+        Returns a media.SearchResult2
         """
         methodName = 'search2'
 
@@ -499,29 +434,19 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        found = {}
-        if 'artist' in dres['searchResult2']:
-            found['artists'] = [Artist(entry) for entry in dres['searchResult2']['artist']]
-        else:
-            found['artists'] = []
-        if 'album' in dres['searchResult2']:
-            found['albums'] = [Album(entry) for entry in dres['searchResult2']['album']]
-        else:
-            found['albums'] = []
-        if 'song' in dres['searchResult2']:
-            found['songs'] = [Song(entry) for entry in dres['searchResult2']['song']]
-        else:
-            found['songs'] = []
-        return found
+        return SearchResult2.from_dict(dres['searchResult2'])
 
 
-    def search3(self, query, artistCount=20, artistOffset=0, albumCount=20,
-            albumOffset=0, songCount=20, songOffset=0, musicFolderId=None):
+    def search3(self, query: str, artistCount: int=20, artistOffset: int=0,
+                albumCount: int=20, albumOffset: int=0, songCount: int=20,
+                songOffset: int=0, musicFolderId: int=None) -> SearchResult3:
         """
         since: 1.8.0
 
         Works the same way as search2, but uses ID3 tags for
         organization
+
+        https://opensubsonic.netlify.app/docs/endpoints/search3/
 
         query:str           The search query
         artistCount:int     Max number of artists to return [default: 20]
@@ -533,8 +458,7 @@ class Connection:
         musicFolderId:int   Only return dresults from the music folder
                             with the given ID. See getMusicFolders
 
-        Returns a dict containing 3 keys, 'artists', 'albums', and 'songs' with each
-        holding a list of media.Artist, media.Album, or media.Song respectively
+        Returns a media.SearchResult3
         """
         methodName = 'search3'
 
@@ -546,25 +470,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        found = {}
-        if 'artist' in dres['searchResult3']:
-            found['artists'] = [Artist(entry) for entry in dres['searchResult3']['artist']]
-        else:
-            found['artists'] = []
-        if 'album' in dres['searchResult3']:
-            found['albums'] = [Album(entry) for entry in dres['searchResult3']['album']]
-        else:
-            found['albums'] = []
-        if 'song' in dres['searchResult3']:
-            found['songs'] = [Song(entry) for entry in dres['searchResult3']['song']]
-        else:
-            found['songs'] = []
-        return found
+        return SearchResult3.from_dict(dres['searchResult3'])
 
 
-    def getPlaylists(self, username=None):
+    def getPlaylists(self, username: str=None) -> list[Playlist]:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getplaylists/
 
         Returns the ID and name of all saved playlists
         The "username" option was added in 1.8.0.
@@ -587,10 +500,10 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return [Playlist(entry) for entry in dres['playlists']['playlist']]
+        return [Playlist.from_dict(entry) for entry in dres['playlists']['playlist']]
 
 
-    def getPlaylist(self, pid):
+    def getPlaylist(self, pid: str) -> Playlist:
         """
         since: 1.0.0
 
@@ -606,12 +519,15 @@ class Connection:
         res = self._doRequest(methodName, {'id': pid})
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return Playlist(dres['playlist'])
+        return Playlist.from_dict(dres['playlist'])
 
 
-    def createPlaylist(self, playlistId=None, name=None, songIds=None):
+    def createPlaylist(self, playlistId: str=None, name: str=None,
+                       songIds: list[str]=None) -> bool:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createplaylist/
 
         Creates OR updates a playlist.  If updating the list, the
         playlistId is required.  If creating a list, the name is required.
@@ -644,9 +560,11 @@ class Connection:
         return True
 
 
-    def deletePlaylist(self, pid):
+    def deletePlaylist(self, pid: str) -> bool:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deleteplaylist/
 
         Deletes a saved playlist
 
@@ -663,9 +581,11 @@ class Connection:
         return True
 
 
-    def download(self, sid):
+    def download(self, sid: str) -> Response:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/download/
 
         Downloads a given music file.
 
@@ -683,10 +603,13 @@ class Connection:
         return dres
 
 
-    def stream(self, sid, maxBitRate=0, tformat=None, timeOffset=None,
-            size=None, estimateContentLength=False, converted=False):
+    def stream(self, sid: str, maxBitRate: int=0, tformat: str=None,
+               timeOffset: int=None, size: str=None,
+               estimateContentLength: bool=False, converted: bool=False) -> Response:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/stream/
 
         Downloads a given music file.
 
@@ -733,9 +656,11 @@ class Connection:
         return dres
 
 
-    def getCoverArt(self, aid, size=None):
+    def getCoverArt(self, aid: str, size: int=None) -> Response:
         """
         since: 1.0.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getcoverart/
 
         Returns a cover art image
 
@@ -756,9 +681,11 @@ class Connection:
         return dres
 
 
-    def scrobble(self, sid, submission=True, listenTime=None):
+    def scrobble(self, sid: str, submission: bool=True, listenTime: int=None) -> bool:
         """
         since: 1.5.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/scrobble/
 
         "Scrobbles" a given music file on last.fm.  Requires that the user
         has set this up.
@@ -791,9 +718,11 @@ class Connection:
         return True
 
 
-    def changePassword(self, username, password):
+    def changePassword(self, username: str, password: str) -> bool:
         """
         since: 1.1.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/changepassword/
 
         Changes the password of an existing Subsonic user.  Note that the
         user performing this must have admin privileges
@@ -818,9 +747,11 @@ class Connection:
         return True
 
 
-    def getUser(self, username):
+    def getUser(self, username: str) -> User:
         """
         since: 1.3.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getuser/
 
         Get details about a given user, including which auth roles it has.
         Can be used to enable/disable certain features in the client, such
@@ -829,22 +760,7 @@ class Connection:
         username:str        The username to retrieve.  You can only retrieve
                             your own user unless you have admin privs.
 
-        Returns a dict like the following:
-
-        {u'status': u'ok',
-         u'user': {u'adminRole': False,
-               u'commentRole': False,
-               u'coverArtRole': False,
-               u'downloadRole': True,
-               u'jukeboxRole': False,
-               u'playlistRole': True,
-               u'podcastRole': False,
-               u'settingsRole': True,
-               u'streamRole': True,
-               u'uploadRole': True,
-               u'username': u'test'},
-         u'version': u'1.5.0',
-         u'xmlns': u'http://subsonic.org/restapi'}
+        Returns a media.User
         """
         methodName = 'getUser'
 
@@ -853,53 +769,39 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return User.from_dict(dres['user'])
 
 
-    def getUsers(self):
+    def getUsers(self) -> list[User]:
         """
         since 1.8.0
 
+        https://opensubsonic.netlify.app/docs/endpoints/getusers/
+
         Gets a list of users
 
-        returns a dict like the following
+        returns a list of media.User
 
-        {u'status': u'ok',
-         u'users': {u'user': [{u'adminRole': True,
-                   u'commentRole': True,
-                   u'coverArtRole': True,
-                   u'downloadRole': True,
-                   u'jukeboxRole': True,
-                   u'playlistRole': True,
-                   u'podcastRole': True,
-                   u'scrobblingEnabled': True,
-                   u'settingsRole': True,
-                   u'shareRole': True,
-                   u'streamRole': True,
-                   u'uploadRole': True,
-                   u'username': u'user1'},
-                   ...
-                   ...
-                   ]},
-         u'version': u'1.10.2',
-         u'xmlns': u'http://subsonic.org/restapi'}
         """
         methodName = 'getUsers'
 
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [User.from_dict(u) for u in dres['users']['user']]
 
 
-    def createUser(self, username, password, email,
-            ldapAuthenticated=False, adminRole=False, settingsRole=True,
-            streamRole=True, jukeboxRole=False, downloadRole=False,
-            uploadRole=False, playlistRole=False, coverArtRole=False,
-            commentRole=False, podcastRole=False, shareRole=False,
-            videoConversionRole=False, musicFolderId=None):
+    def createUser(self, username: str, password: str, email: str,
+            ldapAuthenticated: bool=False, adminRole: bool=False,
+            settingsRole: bool=True, streamRole: bool=True, jukeboxRole: bool=False,
+            downloadRole: bool=False, uploadRole: bool=False,
+            playlistRole: bool=False, coverArtRole: bool=False,
+            commentRole: bool=False, podcastRole: bool=False, shareRole: bool=False,
+            videoConversionRole: bool=False, musicFolderId: int=None) -> bool:
         """
         since: 1.1.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createuser/
 
         Creates a new subsonic user, using the parameters defined.  See the
         documentation at http://subsonic.org for more info on all the roles.
@@ -934,14 +836,18 @@ class Connection:
         return True
 
 
-    def updateUser(self, username,  password=None, email=None,
-            ldapAuthenticated=False, adminRole=False, settingsRole=True,
-            streamRole=True, jukeboxRole=False, downloadRole=False,
-            uploadRole=False, playlistRole=False, coverArtRole=False,
-            commentRole=False, podcastRole=False, shareRole=False,
-            videoConversionRole=False, musicFolderId=None, maxBitRate=0):
+    def updateUser(self, username: str,  password: str=None, email: str=None,
+            ldapAuthenticated: bool=False, adminRole: bool=False,
+            settingsRole: bool=True, streamRole: bool=True, jukeboxRole: bool=False,
+            downloadRole: bool=False, uploadRole: bool=False,
+            playlistRole: bool=False, coverArtRole: bool=False,
+            commentRole: bool=False, podcastRole: bool=False, shareRole: bool=False,
+            videoConversionRole: bool=False, musicFolderId: int=None,
+            maxBitRate: int=0) -> bool:
         """
         since 1.10.1
+
+        https://opensubsonic.netlify.app/docs/endpoints/updateuser/
 
         Modifies an existing Subsonic user.
 
@@ -976,9 +882,11 @@ class Connection:
         return True
 
 
-    def deleteUser(self, username):
+    def deleteUser(self, username: str) -> bool:
         """
         since: 1.3.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deleteuser/
 
         Deletes an existing Subsonic user.  Of course, you must have admin
         rights for this.
@@ -998,9 +906,11 @@ class Connection:
         return True
 
 
-    def getChatMessages(self, since=1):
+    def getChatMessages(self, since: int=1) -> list[ChatMessage]:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getchatmessages/
 
         Returns the current visible (non-expired) chat messages.
 
@@ -1009,13 +919,7 @@ class Connection:
         NOTE: All times returned are in MILLISECONDS since the Epoch, not
               seconds!
 
-        Returns a dict like the following:
-        {u'chatMessages': {u'chatMessage': {u'message': u'testing 123',
-                                            u'time': 1303411919872L,
-                                            u'username': u'admin'}},
-         u'status': u'ok',
-         u'version': u'1.5.0',
-         u'xmlns': u'http://subsonic.org/restapi'}
+        Returns a list of media.ChatMessage
         """
         methodName = 'getChatMessages'
 
@@ -1024,12 +928,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [ChatMessage.from_dict(dres['chatMessages']['chatMessage'])]
 
 
-    def addChatMessage(self, message):
+    def addChatMessage(self, message: str) -> bool:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/addchatmessage/
 
         Adds a message to the chat log
 
@@ -1048,10 +954,12 @@ class Connection:
         return True
 
 
-    def getAlbumList(self, ltype, size=10, offset=0, fromYear=None,
-            toYear=None, genre=None, musicFolderId=None):
+    def getAlbumList(self, ltype: str, size: int=10, offset: int=0, fromYear: int=None,
+            toYear: int=None, genre: str=None, musicFolderId: str=None) -> list[Album]:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getalbumlist/
 
         Returns a list of random, newest, highest rated etc. albums.
         Similar to the album lists on the home page of the Subsonic
@@ -1087,13 +995,16 @@ class Connection:
         self._checkStatus(dres)
         if 'album' not in dres['albumList']:
             return []
-        return [Album(entry) for entry in dres['albumList']['album']]
+        return [Album.from_dict(entry) for entry in dres['albumList']['album']]
 
 
-    def getAlbumList2(self, ltype, size=10, offset=0, fromYear=None,
-            toYear=None, genre=None):
+    def getAlbumList2(self, ltype: str, size: int=10, offset: int=0,
+                      fromYear: int=None, toYear: int=None,
+                      genre: str=None) -> list[AlbumID3]:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getalbumlist2/
 
         Returns a list of random, newest, highest rated etc. albums.
         This is similar to getAlbumList, but uses ID3 tags for
@@ -1127,11 +1038,11 @@ class Connection:
         self._checkStatus(dres)
         if 'album' not in dres['albumList2']:
             return []
-        return [Album(entry) for entry in dres['albumList2']['album']]
+        return [AlbumID3.from_dict(entry) for entry in dres['albumList2']['album']]
 
 
-    def getRandomSongs(self, size=10, genre=None, fromYear=None,
-            toYear=None, musicFolderId=None):
+    def getRandomSongs(self, size: int=10, genre: str=None, fromYear: int=None,
+            toYear: int=None, musicFolderId: str=None) -> list[Child]:
         """
         since 1.2.0
 
@@ -1144,7 +1055,7 @@ class Connection:
         musicFolderId:str   Only return songs in the music folder with the
                             given ID.  See getMusicFolders
 
-        Returns a list of media.Song
+        Returns a list of media.Child
         """
         methodName = 'getRandomSongs'
 
@@ -1155,27 +1066,22 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return [Song(entry) for entry in dres['randomSongs']['song']]
+        return [Child.from_dict(entry) for entry in dres['randomSongs']['song']]
 
 
-    def getLyrics(self, artist=None, title=None):
+    def getLyrics(self, artist: str=None, title: str=None) -> Lyrics:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getlyrics/
 
         Searches for and returns lyrics for a given song
 
         artist:str      The artist name
         title:str       The song title
 
-        Returns a dict like the following for
-        getLyrics('Bob Dylan', 'Blowin in the wind'):
+        Returns a 
 
-        {u'lyrics': {u'artist': u'Bob Dylan',
-             u'content': u"How many roads must a man walk down<snip>",
-             u'title': u"Blowin' in the Wind"},
-         u'status': u'ok',
-         u'version': u'1.5.0',
-         u'xmlns': u'http://subsonic.org/restapi'}
         """
         methodName = 'getLyrics'
 
@@ -1184,12 +1090,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return Lyrics.from_dict(dres['lyrics'])
     
 
-    def getLyricsBySongId(self, song_id):
+    def getLyricsBySongId(self, song_id: str) -> list[StructuredLyrics]:
         """
         Since Open Subsonic ver 1
+
+        https://opensubsonic.netlify.app/docs/endpoints/getlyricsbysongid/
 
         Retrieves all structured lyrics from the server for a given song.
         The lyrics can come from embedded tags (SYLT/USLT), LRC file/text
@@ -1197,41 +1105,7 @@ class Connection:
 
         id:str          The id of the requested songA
 
-        Returns a dict like the following object:
-
-        {u"lyricsList": {
-          u"structuredLyrics": [
-          {
-            u"displayArtist": u"Muse",
-            u"displayTitle": u"Hysteria",
-            u"lang": u"eng",
-            u"offset": -100,
-            u"synced": true,
-            u"line": [ {
-              u"start": 0,
-              u"value": u"It's bugging me"
-            }, {
-              u"start": 2000,
-              u"value": u"Grating me"
-            }, {
-              u"start": 3001,
-              u"value": u"And twisting me around..."
-            } ] },
-          {
-            u"displayArtist": u"Muse",
-            u"displayTitle": u"Hysteria",
-            u"lang": u"und",
-            u"offset": 100,
-            u"synced": false,
-            u"line": [ {
-              u"value": u"It's bugging me"
-            }, {
-              u"value": u"Grating me"
-            }, {
-              u"value": u"And twisting me around..."
-            } ] }
-         ]
-        }
+        Returns a list of media.StructuredLyrics
         """
         methodName = 'getLyricsBySongId'
 
@@ -1240,13 +1114,15 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [StructuredLyrics.from_dict(l) for l in dres['lyricsList']['structuredLyrics']]
 
 
-    def jukeboxControl(self, action, index=None, sids=None, gain=None,
-            offset=None):
+    def jukeboxControl(self, action:str, index: int=None, sids: str=None,
+                       gain: float=None, offset: int=None) -> JukeboxStatus|JukeboxPlaylist:
         """
         since: 1.2.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/jukeboxcontrol/
 
         NOTE: Some options were added as of API version 1.7.0
 
@@ -1269,6 +1145,8 @@ class Connection:
                         A float value between 0.0 and 1.0
         offset:int      (added in API 1.7.0) Used by "skip".  Start playing
                         this many seconds into the track.
+
+        Returns a media.JukeboxPlaylist if action == 'get', JukeboxStatus otherwise
         """
         methodName = 'jukeboxControl'
 
@@ -1289,12 +1167,18 @@ class Connection:
             res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+
+        if action == 'get':
+            return JukeboxPlaylist.from_dict(dres['jukeboxPlaylist'])
+
+        return JukeboxStatus.from_dict(dres['jukeboxStatus'])
 
 
-    def getPodcasts(self, incEpisodes=True, pid=None):
+    def getPodcasts(self, incEpisodes: bool=True, pid: str=None) -> list[PodcastChannel]:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getpodcasts/
 
         Returns all podcast channels the server subscribes to and their
         episodes.
@@ -1313,49 +1197,34 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return [PodcastChannel(entry) for entry in dres['podcasts']['channel']]
+        return [PodcastChannel.from_dict(entry) for entry in dres['podcasts']['channel']]
 
 
-    def getShares(self):
+    def getShares(self) -> list[Share]:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getshares/
 
         Returns information about shared media this user is allowed to manage
 
         Note that entry can be either a single dict or a list of dicts
 
-        Returns a dict like the following:
-
-        {u'status': u'ok',
-         u'version': u'1.6.0',
-         u'xmlns': u'http://subsonic.org/restapi',
-         u'shares': {u'share': [
-             {u'created': u'2011-08-18T10:01:35',
-              u'entry': {u'artist': u'Alice In Chains',
-                         u'coverArt': u'2f66696c65732f6d7033732f412d4d2f416c69636520496e20436861696e732f416c69636520496e20436861696e732f636f7665722e6a7067',
-                         u'id': u'2f66696c65732f6d7033732f412d4d2f416c69636520496e20436861696e732f416c69636520496e20436861696e73',
-                         u'isDir': True,
-                         u'parent': u'2f66696c65732f6d7033732f412d4d2f416c69636520496e20436861696e73',
-                         u'title': u'Alice In Chains'},
-              u'expires': u'2012-08-18T10:01:35',
-              u'id': 0,
-              u'url': u'http://crustymonkey.subsonic.org/share/BuLbF',
-              u'username': u'admin',
-              u'visitCount': 0
-             }]}
-        }
+        Returns a list of media.Share
         """
         methodName = 'getShares'
 
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [Share.from_dict(s) for s in dres['shares']['share']]
 
 
-    def createShare(self, shids=None, description=None, expires=None):
+    def createShare(self, shids: list[str]=None, description: str=None, expires: float=None) -> Share:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createshare/
 
         Creates a public URL that can be used by anyone to stream music
         or video from the Subsonic server. The URL is short and suitable
@@ -1371,8 +1240,7 @@ class Connection:
         expires:float               A timestamp pertaining to the time at
                                     which this should expire (optional)
 
-        This returns a structure like you would get back from getShares()
-        containing just your new share.
+        This returns a media.Share
         """
         methodName = 'createShare'
 
@@ -1384,12 +1252,14 @@ class Connection:
         res = self._doRequestWithList(methodName, 'id', shids, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return Share.from_dict(dres['shares']['share'][0])
 
 
-    def updateShare(self, shid, description=None, expires=None):
+    def updateShare(self, shid: str, description: str=None, expires: float=None) -> bool:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/updateshare/
 
         Updates the description and/or expiration date for an existing share
 
@@ -1397,6 +1267,8 @@ class Connection:
         description:str     The new description for the share (optional).
         expires:float       The new timestamp for the expiration time of this
                             share (optional).
+
+        Returns True on success
         """
         methodName = 'updateShare'
 
@@ -1406,12 +1278,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return True
 
 
-    def deleteShare(self, shid):
+    def deleteShare(self, shid: str) -> bool:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deleteshare/
 
         Deletes an existing share
 
@@ -1430,9 +1304,11 @@ class Connection:
         return True
 
 
-    def setRating(self, item_id, rating):
+    def setRating(self, item_id: str, rating: int) -> bool:
         """
         since: 1.6.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/setrating/
 
         Sets the rating for a music file
 
@@ -1448,11 +1324,9 @@ class Connection:
         try:
             rating = int(rating)
         except Exception as exc:
-            raise errors.ArgumentError('Rating must be an integer between 0 and 5: '
-                '%r' % rating) from exc
+            raise errors.ArgumentError(f'Rating must be an integer between 0 and 5: {rating}') from exc
         if rating < 0 or rating > 5:
-            raise errors.ArgumentError('Rating must be an integer between 0 and 5: '
-                '%r' % rating)
+            raise errors.ArgumentError(f'Rating must be an integer between 0 and 5: {rating}')
 
         q = self._getQueryDict({'id': item_id, 'rating': rating})
 
@@ -1462,14 +1336,16 @@ class Connection:
         return True
 
 
-    def getArtists(self):
+    def getArtists(self) -> Artists:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getartists/
 
         Similar to getIndexes(), but this method uses the ID3 tags to
         determine the artist
 
-        Returns a list of media.Index
+        Returns a media.Artists
         """
         methodName = 'getArtists'
 
@@ -1477,12 +1353,14 @@ class Connection:
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
 
-        return [Index(entry) for entry in dres['artists']['index']]
+        return Artists.from_dict(dres['artists'])
 
 
-    def getArtist(self, artist_id):
+    def getArtist(self, artist_id: str) -> ArtistID3:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getartist/
 
         Returns the info (albums) for an artist.  This method uses
         the ID3 tags for organization
@@ -1498,19 +1376,21 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return Artist(dres['artist'])
+        return ArtistID3.from_dict(dres['artist'])
 
 
-    def getAlbum(self, album_id):
+    def getAlbum(self, album_id: str) -> AlbumID3:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getalbum/
 
         Returns the info and songs for an album.  This method uses
         the ID3 tags for organization
 
         album_id:str      The album ID
 
-        Returns a media.Album
+        Returns a media.AlbumID3
         """
         methodName = 'getAlbum'
 
@@ -1519,19 +1399,21 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return Album(dres['album'])
+        return AlbumID3.from_dict(dres['album'])
 
 
-    def getSong(self, sid):
+    def getSong(self, sid: str) -> Child:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getsong/
 
         Returns the info for a song.  This method uses the ID3
         tags for organization
 
         sid:str      The song ID
 
-        Returns a media.Song
+        Returns a media.Child
         """
         methodName = 'getSong'
 
@@ -1540,53 +1422,16 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return Song(dres['song'])
+        return Child.from_dict(dres['song'])
 
 
-    def getSong2(self, sid):
-        """
-        since 1.8.0
-
-        Returns the info for a song.  This method uses the ID3
-        tags for organization
-
-        sid:str      The song ID
-
-        Returns a media.Song
-        """
-        methodName = 'getSong'
-
-        q = self._getQueryDict({'id': sid})
-
-        res = self._doRequest(methodName, q)
-        dres = self._handleInfoRes(res)
-        self._checkStatus(dres)
-        return Child(**dres['song'])
-
-
-    def getVideos(self):
+    def getVideos(self) -> dict:
         """
         since 1.8.0
 
         Returns all video files
 
-        Returns a dict like the following:
-            {u'status': u'ok',
-             u'version': u'1.8.0',
-             u'videos': {u'video': {u'bitRate': 384,
-                        u'contentType': u'video/x-matroska',
-                        u'created': u'2012-08-26T13:36:44',
-                        u'duration': 1301,
-                        u'id': 130,
-                        u'isDir': False,
-                        u'isVideo': True,
-                        u'path': u'South Park - 16x07 - Cartman Finds Love.mkv',
-                        u'size': 287309613,
-                        u'suffix': u'mkv',
-                        u'title': u'South Park - 16x07 - Cartman Finds Love',
-                        u'transcodedContentType': u'video/x-flv',
-                        u'transcodedSuffix': u'flv'}},
-             u'xmlns': u'http://subsonic.org/restapi'}
+        Returns a dict
         """
         methodName = 'getVideos'
 
@@ -1596,17 +1441,16 @@ class Connection:
         return dres
 
 
-    def getStarred(self, musicFolderId=None):
+    def getStarred(self, musicFolderId: str=None) -> Starred:
         """
         since 1.8.0
 
-        musicFolderId:int   Only return dresults from the music folder
+        https://opensubsonic.netlify.app/docs/endpoints/getstarred/
+
+        musicFolderId:str   Only return dresults from the music folder
                             with the given ID. See getMusicFolders
 
-        Returns a dict like the following:
-            {u'artists': [media.Artist],
-             u'albums': [media.Album],
-             u'songs': [media.Song]}
+        Returns a media.Starred
         """
         methodName = 'getStarred'
 
@@ -1617,26 +1461,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        starred = dres['starred']
-        ret = {}
-        if 'artist' in starred:
-            ret['artists'] = [Artist(entry) for entry in starred['artist']]
-        else:
-            ret['artists'] = []
-        if 'album' in starred:
-            ret['albums'] = [Album(entry) for entry in starred['album']]
-        else:
-            ret['albums'] = []
-        if 'song' in starred:
-            ret['songs'] = [Song(entry) for entry in starred['song']]
-        else:
-            ret['songs'] = []
-        return ret
+        return Starred.from_dict(dres['starred'])
 
 
-    def getStarred2(self, musicFolderId=None):
+    def getStarred2(self, musicFolderId: str=None) -> Starred2:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getstarred2/
 
         musicFolderId:int   Only return dresults from the music folder
                             with the given ID. See getMusicFolders
@@ -1644,10 +1476,7 @@ class Connection:
         Returns starred songs, albums and artists like getStarred(),
         but this uses ID3 tags for organization
 
-        Returns a dict like the following:
-            {u'artists': [media.Artist],
-             u'albums': [media.Album],
-             u'songs': [media.Song]}
+        Returns a media.Starred2
         """
         methodName = 'getStarred2'
 
@@ -1658,27 +1487,16 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        starred = dres['starred2']
-        ret = {}
-        if 'artist' in starred:
-            ret['artists'] = [Artist(entry) for entry in starred['artist']]
-        else:
-            ret['artists'] = []
-        if 'album' in starred:
-            ret['albums'] = [Album(entry) for entry in starred['album']]
-        else:
-            ret['albums'] = []
-        if 'song' in starred:
-            ret['songs'] = [Song(entry) for entry in starred['song']]
-        else:
-            ret['songs'] = []
-        return ret
+        return Starred2.from_dict(dres['starred2'])
 
 
-    def updatePlaylist(self, lid, name=None, comment=None, songIdsToAdd=None,
-            songIndexesToRemove=None):
+    def updatePlaylist(self, lid: str, name: str=None, comment: str=None,
+                       songIdsToAdd: list[str]=None,
+                       songIndexesToRemove: list[int]=None) -> bool:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/updateplaylist/
 
         Updates a playlist.  Only the owner of a playlist is allowed to
         update it.
@@ -1719,9 +1537,11 @@ class Connection:
         return True
 
 
-    def getAvatar(self, username):
+    def getAvatar(self, username: str) -> Response:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getavatar/
 
         Returns the avatar for a user or None if the avatar does not exist
 
@@ -1741,9 +1561,11 @@ class Connection:
         return dres
 
 
-    def star(self, sids=None, albumIds=None, artistIds=None):
+    def star(self, sids: list[str]=None, albumIds: list[str]=None, artistIds: list[str]=None) -> bool:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/star/
 
         Attaches a star to songs, albums or artists
 
@@ -1784,9 +1606,11 @@ class Connection:
         return True
 
 
-    def unstar(self, sids=None, albumIds=None, artistIds=None):
+    def unstar(self, sids: list[str]=None, albumIds: list[str]=None, artistIds: list[str]=None) -> bool:
         """
         since 1.8.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/unstar/
 
         Removes a star to songs, albums or artists.  Basically, the
         same as star in reverse
@@ -1828,9 +1652,11 @@ class Connection:
         return True
 
 
-    def getGenres(self):
+    def getGenres(self) -> list[Genre]:
         """
         since 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getgenres/
 
         Returns all genres
         """
@@ -1839,14 +1665,16 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [Genre.from_dict(g) for g in dres['genres']['genre']]
 
 
-    def getSongsByGenre(self, genre, count=10, offset=0, musicFolderId=None):
+    def getSongsByGenre(self, genre: str, count: int=10, offset: int=0, musicFolderId: str=None) -> list[Child]:
         """
         since 1.9.0
 
-        Returns list of media.Songs in a given genre
+        https://opensubsonic.netlify.app/docs/endpoints/getsongsbygenre/
+
+        Returns list of media.Child in a given genre
 
         genre:str       The genre, as returned by getGenres()
         count:int       The maximum number of songs to return.  Max is 500
@@ -1866,7 +1694,7 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return [Song(entry) for entry in dres['songsByGenre']['song']]
+        return [Child.from_dict(entry) for entry in dres['songsByGenre']['song']]
 
 
     def hls (self, mid, bitrate=None):
@@ -1905,9 +1733,11 @@ class Connection:
         return dres.read()
 
 
-    def refreshPodcasts(self):
+    def refreshPodcasts(self) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/refreshpodcasts/
 
         Tells the server to check for new Podcast episodes. Note: The user
         must be authorized for Podcast administration
@@ -1923,9 +1753,11 @@ class Connection:
         return True
 
 
-    def createPodcastChannel(self, url):
+    def createPodcastChannel(self, url: str) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createpodcastchannel/
 
         Adds a new Podcast channel.  Note: The user must be authorized
         for Podcast administration
@@ -1945,9 +1777,11 @@ class Connection:
         return True
 
 
-    def deletePodcastChannel(self, pid):
+    def deletePodcastChannel(self, pid: str) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deletepodcastchannel/
 
         Deletes a Podcast channel.  Note: The user must be authorized
         for Podcast administration
@@ -1967,9 +1801,11 @@ class Connection:
         return True
 
 
-    def deletePodcastEpisode(self, pid):
+    def deletePodcastEpisode(self, pid: str) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deletepodcastepisode/
 
         Deletes a Podcast episode.  Note: The user must be authorized
         for Podcast administration
@@ -1989,9 +1825,11 @@ class Connection:
         return True
 
 
-    def downloadPodcastEpisode(self, pid):
+    def downloadPodcastEpisode(self, pid: str) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/downloadpodcastepisode/
 
         Tells the server to start downloading a given Podcast episode.
         Note: The user must be authorized for Podcast administration
@@ -2011,9 +1849,11 @@ class Connection:
         return True
 
 
-    def getInternetRadioStations(self):
+    def getInternetRadioStations(self) -> list[InternetRadioStation]:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getinternetradiostations/
 
         Returns all internet radio stations
         """
@@ -2022,12 +1862,14 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [InternetRadioStation.from_dict(i) for i in dres['internetRadioStations']['internetRadioStation']]
 
 
-    def createInternetRadioStation(self, streamUrl, name, homepageUrl=None):
+    def createInternetRadioStation(self, streamUrl: str, name: str, homepageUrl: str=None) -> bool:
         """
         since 1.16.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createinternetradiostation/
 
         Create an internet radio station
 
@@ -2043,13 +1885,15 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return True
 
 
-    def updateInternetRadioStation(self, iid, streamUrl, name,
-            homepageUrl=None):
+    def updateInternetRadioStation(self, iid: str, streamUrl: str, name: str,
+            homepageUrl: str=None) -> bool:
         """
         since 1.16.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/updateinternetradiostation/
 
         Create an internet radio station
 
@@ -2068,12 +1912,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return True
 
 
-    def deleteInternetRadioStation(self, iid):
+    def deleteInternetRadioStation(self, iid: str) -> bool:
         """
         since 1.16.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deleteinternetradiostation/
 
         Create an internet radio station
 
@@ -2086,12 +1932,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return True
 
 
-    def getBookmarks(self):
+    def getBookmarks(self) -> list[Bookmark]:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getbookmarks/
 
         Returns all bookmarks for this user.  A bookmark is a position
         within a media file
@@ -2101,12 +1949,14 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return [Bookmark.from_dict(b) for b in dres['bookmarks']['bookmark']]
 
 
-    def createBookmark(self, mid, position, comment=None):
+    def createBookmark(self, mid: str, position: int, comment: str=None) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/createbookmark/
 
         Creates or updates a bookmark (position within a media file).
         Bookmarks are personal and not visible to other users
@@ -2130,9 +1980,11 @@ class Connection:
         return True
 
 
-    def deleteBookmark(self, mid):
+    def deleteBookmark(self, mid: str) -> bool:
         """
         since: 1.9.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/deletebookmark/
 
         Deletes the bookmark for a given file
 
@@ -2152,12 +2004,13 @@ class Connection:
         return True
 
 
-    def getArtistInfo(self, aid, count=20, includeNotPresent=False):
+    def getArtistInfo(self, aid: str, count: int=20, includeNotPresent: bool=False) -> ArtistInfo:
         """
         since: 1.11.0
 
-        Returns artist info with biography, image URLS and similar artists
-        using data from last.fm
+        https://opensubsonic.netlify.app/docs/endpoints/getartistinfo/
+
+        Returns a media.ArtistInfo
 
         aid:str                 The ID of the artist, album or song
         count:int               The max number of similar artists to return
@@ -2172,12 +2025,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return ArtistInfo(dres['artistInfo'])
+        return ArtistInfo.from_dict(dres['artistInfo'])
 
 
-    def getArtistInfo2(self, aid, count=20, includeNotPresent=False):
+    def getArtistInfo2(self, aid: str, count: int=20, includeNotPresent: bool=False) -> ArtistInfo2:
         """
         since: 1.11.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getartistinfo2/
 
         Similar to getArtistInfo(), but organizes music according to ID3 tags
 
@@ -2194,12 +2049,14 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return ArtistInfo(dres['artistInfo2'])
+        return ArtistInfo2.from_dict(dres['artistInfo2'])
 
 
-    def getSimilarSongs(self, iid, count=50):
+    def getSimilarSongs(self, iid: str, count: int=50) -> list[Child]:
         """
         since 1.11.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getsimilarsongs/
 
         Returns a random collection of songs from the given artist and
         similar artists, using data from last.fm. Typically used for
@@ -2217,12 +2074,14 @@ class Connection:
         self._checkStatus(dres)
         if 'similarSongs' not in dres or 'song' not in dres['similarSongs']:
             return []
-        return [Song(entry) for entry in dres['similarSongs']['song']]
+        return [Child.from_dict(entry) for entry in dres['similarSongs']['song']]
 
 
-    def getSimilarSongs2(self, iid, count=50):
+    def getSimilarSongs2(self, iid: str, count: int=50) -> list[Child]:
         """
         since 1.11.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getsimilarsongs2/
 
         Similar to getSimilarSongs(), but organizes music according to
         ID3 tags
@@ -2239,12 +2098,14 @@ class Connection:
         self._checkStatus(dres)
         if 'similarSongs2' not in dres or 'song' not in dres['similarSongs2']:
             return []
-        return [Song(entry) for entry in dres['similarSongs2']['song']]
+        return [Child.from_dict(entry) for entry in dres['similarSongs2']['song']]
 
 
-    def savePlayQueue(self, qids, current=None, position=None):
+    def savePlayQueue(self, qids, current=None, position=None) -> bool:
         """
         since 1.12.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/saveplayqueue/
 
         qid:list[int]       The list of song ids in the play queue
         current:int         The id of the current playing song
@@ -2267,12 +2128,14 @@ class Connection:
         res = self._doRequestWithLists(methodName, {'id': qids}, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return True
 
 
-    def getPlayQueue(self):
+    def getPlayQueue(self) -> PlayQueue:
         """
         since 1.12.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getplayqueue/
 
         Returns the state of the play queue for this user (as set by
         savePlayQueue). This includes the tracks in the play queue,
@@ -2286,12 +2149,14 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return dres
+        return PlayQueue.from_dict(dres['playQueue'])
 
 
-    def getTopSongs(self, artist, count=50):
+    def getTopSongs(self, artist: str, count: int=50) -> list[Child]:
         """
         since 1.13.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/gettopsongs/
 
         Returns the top songs for a given artist as a List of media.Song
 
@@ -2307,12 +2172,14 @@ class Connection:
         self._checkStatus(dres)
         if 'topSongs' not in dres or 'song' not in dres['topSongs']:
             return []
-        return [Song(entry) for entry in dres['topSongs']['song']]
+        return [Child.from_dict(entry) for entry in dres['topSongs']['song']]
 
 
-    def getNewestPodcasts(self, count=20):
+    def getNewestPodcasts(self, count: int=20) -> list[PodcastEpisode]:
         """
         since 1.13.0
+
+        https://opensubsonic.netlify.app/docs/endpoints/getnewestpodcasts/
 
         Returns the most recently published Podcast episodes as a list of media.PodcastEpisode
 
@@ -2327,7 +2194,7 @@ class Connection:
         self._checkStatus(dres)
         if 'newestPodcasts' not in dres or 'episode' not in dres['newestPodcasts']:
             return []
-        return [PodcastEpisode(entry) for entry in dres['newestPodcasts']['episode']]
+        return [PodcastEpisode.from_dict(entry) for entry in dres['newestPodcasts']['episode']]
 
 
     def getVideoInfo(self, vid):
@@ -2348,7 +2215,7 @@ class Connection:
         return dres
 
 
-    def getAlbumInfo(self, aid):
+    def getAlbumInfo(self, aid: str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -2364,10 +2231,10 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return AlbumInfo(dres['albumInfo'])
+        return AlbumInfo.from_dict(dres['albumInfo'])
 
 
-    def getAlbumInfo2(self, aid):
+    def getAlbumInfo2(self, aid: str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -2383,7 +2250,7 @@ class Connection:
         res = self._doRequest(methodName, q)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        return AlbumInfo(dres['albumInfo'])
+        return AlbumInfo.from_dict(dres['albumInfo'])
 
 
     def getCaptions(self, vid, fmt=None):
@@ -2408,7 +2275,7 @@ class Connection:
     #
     # Private internal methods
     #
-    def _getQueryDict(self, d):
+    def _getQueryDict(self, d: dict) -> dict:
         """
         Given a dictionary, it cleans out all the values set to None
         """
@@ -2418,7 +2285,7 @@ class Connection:
         return d
 
 
-    def _getBaseQdict(self):
+    def _getBaseQdict(self) -> dict:
         qdict = {
             'f': 'json',
             'v': self._apiVersion,
@@ -2439,7 +2306,7 @@ class Connection:
         return qdict
 
 
-    def _doRequest(self, methodName, query=None, is_stream=False):
+    def _doRequest(self, methodName: str, query: dict=None, is_stream: bool=False) -> Response:
         qdict = self._getBaseQdict()
         if query is not None:
             qdict.update(query)
@@ -2449,14 +2316,15 @@ class Connection:
         url = f"{self._baseUrl}:{self._port}/{self._serverPath}/{methodName}"
 
         if self._useGET:
-            res = requests.get(url, params=qdict, stream=is_stream, timeout=(30, 60))
+            res = get(url, params=qdict, stream=is_stream, timeout=(30, 60))
         else:
-            res = requests.post(url, data=qdict, stream=is_stream, timeout=(30, 60))
+            res = post(url, data=qdict, stream=is_stream, timeout=(30, 60))
 
         return res
 
 
-    def _doRequestWithList(self, methodName, listName, alist, query=None):
+    def _doRequestWithList(self, methodName: str, listName: str, alist: list,
+                           query: dict=None) -> Response:
         """
         Like _getRequest, but allows appending a number of items with the
         same key (listName).  This bypasses the limitation of urlencode()
@@ -2471,14 +2339,14 @@ class Connection:
         url = f"{self._baseUrl}:{self._port}/{self._serverPath}/{methodName}"
 
         if self._useGET:
-            res = requests.get(url, params=qdict, timeout=(30, 60))
+            res = get(url, params=qdict, timeout=(30, 60))
         else:
-            res = requests.post(url, data=qdict, timeout=(30, 60))
+            res = post(url, data=qdict, timeout=(30, 60))
 
         return res
 
 
-    def _doRequestWithLists(self, methodName, listMap, query=None):
+    def _doRequestWithLists(self, methodName: str, listMap: dict, query: dict=None) -> Response:
         """
         Like _getRequestWithList(), but you must pass a dictionary
         that maps the listName to the list.  This allows for multiple
@@ -2499,21 +2367,21 @@ class Connection:
         url = f"{self._baseUrl}:{self._port}/{self._serverPath}/{methodName}"
 
         if self._useGET:
-            res = requests.get(url, params=qdict, timeout=(60,300))
+            res = get(url, params=qdict, timeout=(60,300))
         else:
-            res = requests.post(url, data=qdict, timeout=(60,300))
+            res = post(url, data=qdict, timeout=(60,300))
 
         return res
 
 
-    def _handleInfoRes(self, res):
+    def _handleInfoRes(self, res: Response) -> dict:
         # Returns a parsed dictionary version of the result
         res.raise_for_status()
         dres = res.json()
         return dres['subsonic-response']
 
 
-    def _handleBinRes(self, res):
+    def _handleBinRes(self, res: Response) -> Response:
         res.raise_for_status()
         contType = res.headers['Content-Type'] if 'Content-Type' in res.headers else None
 
@@ -2525,7 +2393,7 @@ class Connection:
         return res
 
 
-    def _checkStatus(self, result):
+    def _checkStatus(self, result: dict) -> bool:
         if result['status'] == 'ok':
             return True
         elif result['status'] == 'failed':
@@ -2533,7 +2401,7 @@ class Connection:
             raise exc(result['error']['message'])
 
 
-    def _hexEnc(self, raw):
+    def _hexEnc(self, raw: str) -> str:
         """
         Returns a "hex encoded" string per the Subsonic api docs
 
@@ -2545,7 +2413,7 @@ class Connection:
         return ret
 
 
-    def _ts2milli(self, ts):
+    def _ts2milli(self, ts: int) -> int:
         """
         For whatever reason, Subsonic uses timestamps in milliseconds since
         the unix epoch.  I have no idea what need there is of this precision,
@@ -2608,4 +2476,5 @@ class Connection:
     def _getSalt(self, length=16):
         salt = md5(os.urandom(100)).hexdigest()
         return salt[:length]
+    
 
