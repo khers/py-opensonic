@@ -1,3 +1,6 @@
+##6.0.1
+Remove debug print from getOpenSubsonicExtensions() call
+
 ##6.0.0
 
 Major changes. In this update we move to using dataclasses and the mashumaro

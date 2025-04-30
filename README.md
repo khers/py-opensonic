@@ -44,7 +44,8 @@ conn = libopensonic.Connection('https://music.example.com' , 'myuser' ,
 # Let's get 2 completely random songs
 songs = conn.getRandomSongs(size=2)
 # We'll just pretty print the results we got to the terminal
-print(songs[0].to_dict())
+print(songs[0])
+print(songs[1])
 ```
 
 As you can see, it's really pretty simple.  If you use the documentation 

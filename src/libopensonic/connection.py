@@ -255,7 +255,6 @@ class Connection:
         res = self._doRequest(methodName)
         dres = self._handleInfoRes(res)
         self._checkStatus(dres)
-        print(dres)
         return [OpenSubsonicExtension.from_dict(o) for o in dres['openSubsonicExtensions']]
 
 
