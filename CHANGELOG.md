@@ -1,4 +1,9 @@
+##6.0.2
+
+Remove @deprecated decorator for now, this makes python 3.13 a requirement and I want to support 3.12
+
 ##6.0.1
+
 Remove debug print from getOpenSubsonicExtensions() call
 
 ##6.0.0

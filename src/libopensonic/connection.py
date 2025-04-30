@@ -18,7 +18,6 @@ along with py-opensonic.  If not, see <http://www.gnu.org/licenses/>
 from netrc import netrc
 from hashlib import md5
 import os
-from warnings import deprecated
 
 from requests import get, post, Response
 
@@ -389,7 +388,7 @@ class Connection:
         return Directory.from_dict(dres['directory'])
 
 
-    @deprecated("The search method has been deprecated since 1.4.0, use search[2|3] instead")
+    #@deprecated("The search method has been deprecated since 1.4.0, use search[2|3] instead")
     def search(self, artist=None, album=None, title=None, any=None,
             count=20, offset=0, newerThan=None):
         """
