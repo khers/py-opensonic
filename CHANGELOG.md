@@ -1,3 +1,9 @@
+##7.0.0
+
+Move to a more pythonic interface. This update drops all camelCasing and moves to more modern python
+where we can (f-strings instead of format() etc.). It's another sizeable udpate but should be better
+for some value of better.
+
 ##6.0.2
 
 Remove @deprecated decorator for now, this makes python 3.13 a requirement and I want to support 3.12

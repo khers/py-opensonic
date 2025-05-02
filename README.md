@@ -42,7 +42,7 @@ import libopensonic
 conn = libopensonic.Connection('https://music.example.com' , 'myuser' , 
     'secretpass' , port=443)
 # Let's get 2 completely random songs
-songs = conn.getRandomSongs(size=2)
+songs = conn.get_random_songs(size=2)
 # We'll just pretty print the results we got to the terminal
 print(songs[0])
 print(songs[1])
