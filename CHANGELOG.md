@@ -1,3 +1,7 @@
+##7.0.1
+
+Our PodcastStatus Enum cannot be a data class
+
 ##7.0.0
 
 Move to a more pythonic interface. This update drops all camelCasing and moves to more modern python

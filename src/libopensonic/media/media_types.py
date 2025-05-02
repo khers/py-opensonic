@@ -475,7 +475,6 @@ class PodcastEpisode(Child):
     description: str = None
     publish_date: Annotated[str | None, Alias("publishDate")] = None
 
-@dataclass(kw_only=True)
 class PodcastStatus(Enum):
     """
     https://opensubsonic.netlify.app/docs/responses/podcaststatus/
