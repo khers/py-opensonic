@@ -33,25 +33,15 @@ from .media.media_types import (Album, AlbumID3, AlbumInfo, ArtistID3, ArtistInf
 API_VERSION = '1.16.1'
 
 
-def pretty_print_post(req: str) -> None:
-    """ Dump a formatted request to stdout. """
-    print('{}\n{}\r\n{}\r\n\r\n{}'.format(
-        '-----------START-----------',
-        req.method + ' ' + req.url,
-        '\r\n'.join(f'{k}: {v}' for k, v in req.headers.items()),
-        req.body,
-    ))
-
-
 class Connection:
     """
     This is the only class used to make calls of an OpenSubsonic server. All return types are
     defined in media.media_types.py.
     """
-    def __init__(self, base_url: str, username: str=None, password:str=None,
-                port: int=4040, server_path: str='', app_name: str='py-opensonic',
-                api_version: str=API_VERSION, insecure: bool=False, use_netrc: str=None,
-                legacy_auth: bool=False, use_get: bool=False, use_views: bool=True):
+    def __init__(self, base_url:str, username:str, password:str, port:int=4040,
+                 server_path:str='', app_name:str='py-opensonic', api_version:str=API_VERSION,
+                 insecure:bool=False, use_netrc:str|None=None, legacy_auth:bool=False,
+                 use_get:bool=False, use_views:bool=True):
         """
         This will create a connection to your subsonic server
 
@@ -140,7 +130,7 @@ class Connection:
 
 
     # Properties
-    def set_base_url(self, url: str) -> None:
+    def set_base_url(self, url:str) -> None:
         """ Set our base URL. """
         self._base_url = url
         if '://' in url:
@@ -150,19 +140,19 @@ class Connection:
     base_url = property(lambda s: s._base_url, set_base_url)
 
 
-    def set_port(self, port: int) -> None:
+    def set_port(self, port:int) -> None:
         """ Set the port to use. """
         self._port = port
     port = property(lambda s: s._port, set_port)
 
 
-    def set_username(self, username: str) -> None:
+    def set_username(self, username:str) -> None:
         """ Set our username. """
         self._username = username
     username = property(lambda s: s._username, set_username)
 
 
-    def set_password(self, password: str) -> None:
+    def set_password(self, password:str) -> None:
         """ Set our password. """
         self._raw_pass = password
         # Redo the opener with the new creds
@@ -172,13 +162,13 @@ class Connection:
     api_version = property(lambda s: s._api_version)
 
 
-    def set_app_name(self, app_name: str) -> None:
+    def set_app_name(self, app_name:str) -> None:
         """ Set the app name. """
         self._app_name = app_name
     app_name = property(lambda s: s._app_name, set_app_name)
 
 
-    def set_server_path(self, path: str) -> None:
+    def set_server_path(self, path:str) -> None:
         """ Set our server path. """
         sep = ''
         if path != '' and not path.endswith('/'):
@@ -187,26 +177,26 @@ class Connection:
     server_path = property(lambda s: s._server_path, set_server_path)
 
 
-    def set_insecure(self, insecure: bool) -> None:
+    def set_insecure(self, insecure:bool) -> None:
         """ Set the insecure field. """
         self._insecure = insecure
     insecure = property(lambda s: s._insecure, set_insecure)
 
 
-    def set_legacy_auth(self, lauth: bool) -> None:
+    def set_legacy_auth(self, lauth:bool) -> None:
         """ Set the legacy_auth field. """
         self._legacy_auth = lauth
     legacy_auth = property(lambda s: s._legacy_auth, set_legacy_auth)
 
 
-    def set_get(self, g: bool) -> None:
+    def set_get(self, g:bool) -> None:
         """ Set use_get field. """
         self._use_get = g
     use_get = property(lambda s: s._use_get, set_get)
 
 
     # API methods
-    def add_chat_message(self, message: str) -> bool:
+    def add_chat_message(self, message:str) -> bool:
         """
         since: 1.2.0
 
@@ -229,7 +219,7 @@ class Connection:
         return True
 
 
-    def change_password(self, username: str, password: str) -> bool:
+    def change_password(self, username:str, password:str) -> bool:
         """
         since: 1.1.0
 
@@ -258,7 +248,7 @@ class Connection:
         return True
 
 
-    def create_bookmark(self, mid: str, position: int, comment: str=None) -> bool:
+    def create_bookmark(self, mid:str, position:int, comment:str|None=None) -> bool:
         """
         since: 1.9.0
 
@@ -286,8 +276,8 @@ class Connection:
         return True
 
 
-    def create_internet_radio_station(self, stream_url: str, name: str,
-                                      homepage_url: str=None) -> bool:
+    def create_internet_radio_station(self, stream_url:str, name:str,
+                                      homepage_url:str|None=None) -> bool:
         """
         since 1.16.0
 
@@ -302,7 +292,7 @@ class Connection:
         method = 'createInternetRadioStation'
 
         q = self._get_query_dict({
-            'streamUrl': stream_url, 'name': name, 'homepageUrl': homepage_url})
+            'streamUrl':stream_url, 'name': name, 'homepageUrl': homepage_url})
 
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
@@ -310,8 +300,8 @@ class Connection:
         return True
 
 
-    def create_playlist(self, playlist_id: str=None, name: str=None,
-                       song_ids: list[str]=None) -> bool:
+    def create_playlist(self, playlist_id:str|None=None, name:str|None=None,
+                       song_ids:list[str]|None=None) -> bool:
         """
         since: 1.2.0
 
@@ -348,7 +338,7 @@ class Connection:
         return True
 
 
-    def create_podcast_channel(self, url: str) -> bool:
+    def create_podcast_channel(self, url:str) -> bool:
         """
         since: 0.9.0
 
@@ -372,8 +362,8 @@ class Connection:
         return True
 
 
-    def create_share(self, shids: list[str]=None, description: str=None,
-                     expires: float=None) -> Share:
+    def create_share(self, shids:list[str]|None=None, description:str|None=None,
+                     expires:float|None=None) -> Share:
         """
         since: 1.6.0
 
@@ -401,20 +391,20 @@ class Connection:
             shids = []
 
         q = self._get_query_dict({'description': description,
-            'expires': self._ts2milli(expires)})
+            'expires': self._ts2milli(int(expires or 0))})
         res = self._do_request_with_list(method, 'id', shids, q)
         dres = self._handle_info_res(res)
         self._check_status(dres)
         return Share.from_dict(dres['shares']['share'][0])
 
 
-    def create_user(self, username: str, password: str, email: str,
-            ldap_authed: bool=False, admin_role: bool=False,
-            settings_role: bool=True, stream_role: bool=True, jukebox_role: bool=False,
-            download_role: bool=False, upload_role: bool=False,
-            playlist_role: bool=False, cover_art_role: bool=False,
-            comment_role: bool=False, podcast_role: bool=False, share_role: bool=False,
-            video_conversion_role: bool=False, music_folder_id: int=None) -> bool:
+    def create_user(self, username:str, password:str, email:str,
+            ldap_authed:bool=False, admin_role:bool=False,
+            settings_role:bool=True, stream_role:bool=True, jukebox_role:bool=False,
+            download_role:bool=False, upload_role:bool=False,
+            playlist_role:bool=False, cover_art_role:bool=False,
+            comment_role:bool=False, podcast_role:bool=False, share_role:bool=False,
+            video_conversion_role:bool=False, music_folder_id:int|None=None) -> bool:
         """
         since: 1.1.0
 
@@ -438,7 +428,7 @@ class Connection:
         q = self._get_query_dict({
             'username': username, 'password': hex_pass, 'email': email,
             'ldapAuthenticated': ldap_authed, 'adminRole': admin_role,
-            'settingsRole': settings_role, 'streamRole': stream_role,
+            'settingsRole': settings_role, 'streamRole':stream_role,
             'jukeboxRole': jukebox_role, 'downloadRole': download_role,
             'uploadRole': upload_role, 'playlistRole': playlist_role,
             'coverArtRole': cover_art_role, 'commentRole': comment_role,
@@ -453,7 +443,7 @@ class Connection:
         return True
 
 
-    def delete_bookmark(self, mid: str) -> bool:
+    def delete_bookmark(self, mid:str) -> bool:
         """
         since: 1.9.0
 
@@ -477,7 +467,7 @@ class Connection:
         return True
 
 
-    def delete_internet_radio_station(self, iid: str) -> bool:
+    def delete_internet_radio_station(self, iid:str) -> bool:
         """
         since 1.16.0
 
@@ -497,7 +487,7 @@ class Connection:
         return True
 
 
-    def delete_podcast_channel(self, pid: str) -> bool:
+    def delete_podcast_channel(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -521,7 +511,7 @@ class Connection:
         return True
 
 
-    def delete_podcast_episode(self, pid: str) -> bool:
+    def delete_podcast_episode(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -545,7 +535,7 @@ class Connection:
         return True
 
 
-    def delete_user(self, username: str) -> bool:
+    def delete_user(self, username:str) -> bool:
         """
         since: 1.3.0
 
@@ -569,7 +559,7 @@ class Connection:
         return True
 
 
-    def delete_playlist(self, pid: str) -> bool:
+    def delete_playlist(self, pid:str) -> bool:
         """
         since: 1.2.0
 
@@ -590,7 +580,7 @@ class Connection:
         return True
 
 
-    def download(self, sid: str) -> Response:
+    def download(self, sid:str) -> Response:
         """
         since: 1.0.0
 
@@ -612,7 +602,7 @@ class Connection:
         return dres
 
 
-    def download_podcast_episode(self, pid: str) -> bool:
+    def download_podcast_episode(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -636,7 +626,7 @@ class Connection:
         return True
 
 
-    def delete_share(self, shid: str) -> bool:
+    def delete_share(self, shid:str) -> bool:
         """
         since: 1.6.0
 
@@ -659,7 +649,7 @@ class Connection:
         return True
 
 
-    def get_album(self, album_id: str) -> AlbumID3:
+    def get_album(self, album_id:str) -> AlbumID3:
         """
         since 1.8.0
 
@@ -682,7 +672,7 @@ class Connection:
         return AlbumID3.from_dict(dres['album'])
 
 
-    def get_album_info(self, aid: str) -> AlbumInfo:
+    def get_album_info(self, aid:str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -701,7 +691,7 @@ class Connection:
         return AlbumInfo.from_dict(dres['albumInfo'])
 
 
-    def get_album_info2(self, aid: str) -> AlbumInfo:
+    def get_album_info2(self, aid:str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -720,8 +710,9 @@ class Connection:
         return AlbumInfo.from_dict(dres['albumInfo'])
 
 
-    def get_album_list(self, ltype: str, size: int=10, offset: int=0, from_year: int=None,
-            to_year: int=None, genre: str=None, music_folder_id: str=None) -> list[Album]:
+    def get_album_list(self, ltype:str, size:int=10, offset:int=0, from_year:int|None=None,
+            to_year:int|None=None, genre:str|None=None,
+            music_folder_id:str|None=None) -> list[Album]:
         """
         since: 1.2.0
 
@@ -764,9 +755,9 @@ class Connection:
         return [Album.from_dict(entry) for entry in dres['albumList']['album']]
 
 
-    def get_album_list2(self, ltype: str, size: int=10, offset: int=0,
-                      from_year: int=None, to_year: int=None,
-                      genre: str=None) -> list[AlbumID3]:
+    def get_album_list2(self, ltype:str, size:int=10, offset:int=0,
+                      from_year:int|None=None, to_year:int|None=None,
+                      genre:str|None=None) -> list[AlbumID3]:
         """
         since 1.8.0
 
@@ -807,7 +798,7 @@ class Connection:
         return [AlbumID3.from_dict(entry) for entry in dres['albumList2']['album']]
 
 
-    def get_artist(self, artist_id: str) -> ArtistID3:
+    def get_artist(self, artist_id:str) -> ArtistID3:
         """
         since 1.8.0
 
@@ -850,8 +841,8 @@ class Connection:
         return Artists.from_dict(dres['artists'])
 
 
-    def get_artist_info(self, aid: str, count: int=20,
-                        include_not_present: bool=False) -> ArtistInfo:
+    def get_artist_info(self, aid:str, count:int=20,
+                        include_not_present:bool=False) -> ArtistInfo:
         """
         since: 1.11.0
 
@@ -875,8 +866,8 @@ class Connection:
         return ArtistInfo.from_dict(dres['artistInfo'])
 
 
-    def get_artist_info2(self, aid: str, count: int=20,
-                         include_not_present: bool=False) -> ArtistInfo2:
+    def get_artist_info2(self, aid:str, count:int=20,
+                         include_not_present:bool=False) -> ArtistInfo2:
         """
         since: 1.11.0
 
@@ -900,7 +891,7 @@ class Connection:
         return ArtistInfo2.from_dict(dres['artistInfo2'])
 
 
-    def get_avatar(self, username: str) -> Response:
+    def get_avatar(self, username:str) -> Response:
         """
         since 1.8.0
 
@@ -953,14 +944,14 @@ class Connection:
         """
         method = 'getCaptions'
 
-        q = self._get_query_dict({'id': int(vid), 'format': fmt})
+        q = self._get_query_dict({'id':int(vid), 'format': fmt})
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
         self._check_status(dres)
         return dres
 
 
-    def get_chat_messages(self, since: int=1) -> list[ChatMessage]:
+    def get_chat_messages(self, since:int=1) -> list[ChatMessage]:
         """
         since: 1.2.0
 
@@ -985,7 +976,7 @@ class Connection:
         return [ChatMessage.from_dict(dres['chatMessages']['chatMessage'])]
 
 
-    def get_cover_art(self, aid: str, size: int=None) -> Response:
+    def get_cover_art(self, aid:str, size:int|None=None) -> Response:
         """
         since: 1.0.0
 
@@ -1026,7 +1017,7 @@ class Connection:
         return [Genre.from_dict(g) for g in dres['genres']['genre']]
 
 
-    def get_indexes(self, music_folder_id: int=None, if_modified_since: int=None) -> Indexes:
+    def get_indexes(self, music_folder_id:int|None=None, if_modified_since:int|None=None) -> Indexes:
         """
         since: 1.0.0
 
@@ -1047,7 +1038,7 @@ class Connection:
         method = 'getIndexes'
 
         q = self._get_query_dict({'musicFolderId': music_folder_id,
-            'ifModifiedSince': self._ts2milli(if_modified_since)})
+            'ifModifiedSince': self._ts2milli(if_modified_since) if if_modified_since else 0})
 
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
@@ -1098,7 +1089,7 @@ class Connection:
         return dres
 
 
-    def get_lyrics(self, artist: str=None, title: str=None) -> Lyrics:
+    def get_lyrics(self, artist:str|None=None, title:str|None=None) -> Lyrics:
         """
         since: 1.2.0
 
@@ -1122,7 +1113,7 @@ class Connection:
         return Lyrics.from_dict(dres['lyrics'])
 
 
-    def get_lyrics_by_song_id(self, song_id: str) -> list[StructuredLyrics]:
+    def get_lyrics_by_song_id(self, song_id:str) -> list[StructuredLyrics]:
         """
         Since Open Subsonic ver 1
 
@@ -1146,7 +1137,7 @@ class Connection:
         return [StructuredLyrics.from_dict(l) for l in dres['lyricsList']['structuredLyrics']]
 
 
-    def get_music_directory(self, mid: str) -> Directory:
+    def get_music_directory(self, mid:str) -> Directory:
         """
         since: 1.0.0
 
@@ -1187,7 +1178,7 @@ class Connection:
         return [MusicFolder.from_dict(f) for f in dres["musicFolders"]]
 
 
-    def get_newest_podcasts(self, count: int=20) -> list[PodcastEpisode]:
+    def get_newest_podcasts(self, count:int=20) -> list[PodcastEpisode]:
         """
         since 1.13.0
 
@@ -1225,7 +1216,7 @@ class Connection:
         return [NowPlayingEntry.from_dict(n) for n in dres['nowPlaying']['entry']]
 
 
-    def get_open_subsonic_extensions(self) -> OpenSubsonicExtension:
+    def get_open_subsonic_extensions(self) -> list[OpenSubsonicExtension]:
         """
         since OpenSubsonic 1
 
@@ -1243,7 +1234,7 @@ class Connection:
         return [OpenSubsonicExtension.from_dict(o) for o in dres['openSubsonicExtensions']]
 
 
-    def get_playlist(self, pid: str) -> Playlist:
+    def get_playlist(self, pid:str) -> Playlist:
         """
         since: 1.0.0
 
@@ -1262,7 +1253,7 @@ class Connection:
         return Playlist.from_dict(dres['playlist'])
 
 
-    def get_playlists(self, username: str=None) -> list[Playlist]:
+    def get_playlists(self, username:str|None=None) -> list[Playlist]:
         """
         since: 1.0.0
 
@@ -1313,7 +1304,7 @@ class Connection:
         return PlayQueue.from_dict(dres['playQueue'])
 
 
-    def get_podcasts(self, inc_episodes: bool=True, pid: str=None) -> list[PodcastChannel]:
+    def get_podcasts(self, inc_episodes:bool=True, pid:str|None=None) -> list[PodcastChannel]:
         """
         since: 1.6.0
 
@@ -1339,8 +1330,8 @@ class Connection:
         return [PodcastChannel.from_dict(entry) for entry in dres['podcasts']['channel']]
 
 
-    def get_random_songs(self, size: int=10, genre: str=None, from_year: int=None,
-            to_year: int=None, music_folder_id: str=None) -> list[Child]:
+    def get_random_songs(self, size:int=10, genre:str|None=None, from_year:int|None=None,
+            to_year:int|None=None, music_folder_id:str|None=None) -> list[Child]:
         """
         since 1.2.0
 
@@ -1409,7 +1400,7 @@ class Connection:
         return [Share.from_dict(s) for s in dres['shares']['share']]
 
 
-    def get_similar_songs(self, iid: str, count: int=50) -> list[Child]:
+    def get_similar_songs(self, iid:str, count:int=50) -> list[Child]:
         """
         since 1.11.0
 
@@ -1434,7 +1425,7 @@ class Connection:
         return [Child.from_dict(entry) for entry in dres['similarSongs']['song']]
 
 
-    def get_similar_songs2(self, iid: str, count: int=50) -> list[Child]:
+    def get_similar_songs2(self, iid:str, count:int=50) -> list[Child]:
         """
         since 1.11.0
 
@@ -1458,7 +1449,7 @@ class Connection:
         return [Child.from_dict(entry) for entry in dres['similarSongs2']['song']]
 
 
-    def get_song(self, sid: str) -> Child:
+    def get_song(self, sid:str) -> Child:
         """
         since 1.8.0
 
@@ -1481,8 +1472,8 @@ class Connection:
         return Child.from_dict(dres['song'])
 
 
-    def get_songs_by_genre(self, genre: str, count: int=10, offset: int=0,
-                           music_folder_id: str=None) -> list[Child]:
+    def get_songs_by_genre(self, genre:str, count:int=10, offset:int=0,
+                           music_folder_id:str|None=None) -> list[Child]:
         """
         since 1.9.0
 
@@ -1511,7 +1502,7 @@ class Connection:
         return [Child.from_dict(entry) for entry in dres['songsByGenre']['song']]
 
 
-    def get_starred(self, music_folder_id: str=None) -> Starred:
+    def get_starred(self, music_folder_id:str|None=None) -> Starred:
         """
         since 1.8.0
 
@@ -1534,7 +1525,7 @@ class Connection:
         return Starred.from_dict(dres['starred'])
 
 
-    def get_starred2(self, music_folder_id: str=None) -> Starred2:
+    def get_starred2(self, music_folder_id:str|None=None) -> Starred2:
         """
         since 1.8.0
 
@@ -1560,7 +1551,7 @@ class Connection:
         return Starred2.from_dict(dres['starred2'])
 
 
-    def get_top_songs(self, artist: str, count: int=50) -> list[Child]:
+    def get_top_songs(self, artist:str, count:int=50) -> list[Child]:
         """
         since 1.13.0
 
@@ -1583,7 +1574,7 @@ class Connection:
         return [Child.from_dict(entry) for entry in dres['topSongs']['song']]
 
 
-    def get_user(self, username: str) -> User:
+    def get_user(self, username:str) -> User:
         """
         since: 1.3.0
 
@@ -1654,7 +1645,7 @@ class Connection:
         """
         method = 'getVideoInfo'
 
-        q = {'id': int(vid)}
+        q = {'id':int(vid)}
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
         self._check_status(dres)
@@ -1694,11 +1685,11 @@ class Connection:
         dres = self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-        return dres.read()
+        return dres.content
 
 
-    def jukebox_control(self, action:str, index: int=None, sids: str=None,
-                       gain: float=None, offset: int=None) -> JukeboxStatus|JukeboxPlaylist:
+    def jukebox_control(self, action:str, index:int|None=None, sids:list[str]|None=None,
+                       gain:float|None=None, offset:int|None=None) -> JukeboxStatus|JukeboxPlaylist:
         """
         since: 1.2.0
 
@@ -1716,7 +1707,7 @@ class Connection:
                         set (added in API 1.7.0)
         index:int       Used by skip and remove. Zero-based index of the
                         song to skip to or remove.
-        sids:str        Used by "add" and "set". ID of song to add to the
+        sids:list[str]  Used by "add" and "set". ID of song to add to the
                         jukebox playlist. Use multiple id parameters to
                         add many songs in the same request.  Whether you
                         are passing one song or many into this, this
@@ -1825,7 +1816,7 @@ class Connection:
         return True
 
 
-    def scrobble(self, sid: str, submission: bool=True, listen_time: int=None) -> bool:
+    def scrobble(self, sid:str, submission:bool=True, listen_time:int|None=None) -> bool:
         """
         since: 1.5.0
 
@@ -1873,9 +1864,9 @@ class Connection:
         raise NotImplementedError("search is deprecated in favor of search2 or search3")
 
 
-    def search2(self, query: str, artist_count: int=20, artist_offset: int=0,
-                album_count: int=20, album_offset: int=0, song_count: int=20,
-                song_offset: int=0, music_folder_id: int=None) -> SearchResult2:
+    def search2(self, query:str, artist_count:int=20, artist_offset:int=0,
+                album_count:int=20, album_offset:int=0, song_count:int=20,
+                song_offset:int=0, music_folder_id:int|None=None) -> SearchResult2:
         """
         since: 1.4.0
 
@@ -1909,9 +1900,9 @@ class Connection:
         return SearchResult2.from_dict(dres['searchResult2'])
 
 
-    def search3(self, query: str, artist_count: int=20, artist_offset: int=0,
-                album_count: int=20, album_offset: int=0, song_count: int=20,
-                song_offset: int=0, music_folder_id: int=None) -> SearchResult3:
+    def search3(self, query:str, artist_count:int=20, artist_offset:int=0,
+                album_count:int=20, album_offset:int=0, song_count:int=20,
+                song_offset:int=0, music_folder_id:int|None=None) -> SearchResult3:
         """
         since: 1.8.0
 
@@ -1945,7 +1936,7 @@ class Connection:
         return SearchResult3.from_dict(dres['searchResult3'])
 
 
-    def set_rating(self, item_id: str, rating: int) -> bool:
+    def set_rating(self, item_id:str, rating:int) -> bool:
         """
         since: 1.6.0
 
@@ -1979,8 +1970,8 @@ class Connection:
         return True
 
 
-    def star(self, sids: list[str]=None, album_ids: list[str]=None,
-             artist_ids: list[str]=None) -> bool:
+    def star(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
+             artist_ids:list[str]|None=None) -> bool:
         """
         since 1.8.0
 
@@ -1989,7 +1980,7 @@ class Connection:
         Attaches a star to songs, albums or artists
 
         sids:list       A list of song IDs to star
-        album_ids:list   A list of album IDs to star.  Use this rather than
+        album_ids:list  A list of album IDs to star.  Use this rather than
                         "sids" if the client access the media collection
                         according to ID3 tags rather than file
                         structure
@@ -2010,12 +2001,6 @@ class Connection:
         if artist_ids is None:
             artist_ids = []
 
-        if not isinstance(sids, list) or isinstance(sids, tuple):
-            sids = [sids]
-        if not isinstance(album_ids, list) or isinstance(album_ids, tuple):
-            album_ids = [album_ids]
-        if not isinstance(artist_ids, list) or isinstance(artist_ids, tuple):
-            artist_ids = [artist_ids]
         list_map = {'id': sids,
             'albumId': album_ids,
             'artistId': artist_ids}
@@ -2048,9 +2033,9 @@ class Connection:
         return ScanStatus.from_dict(dres['scanstatus'])
 
 
-    def stream(self, sid: str, max_bit_rate: int=0, tformat: str=None,
-               time_offset: int=None, size: str=None,
-               estimate_length: bool=False, converted: bool=False) -> Response:
+    def stream(self, sid:str, max_bit_rate:int=0, tformat:str|None=None,
+               time_offset:int|None=None, size:str|None=None,
+               estimate_length:bool=False, converted:bool=False) -> Response:
         """
         since: 1.0.0
 
@@ -2101,8 +2086,8 @@ class Connection:
         return dres
 
 
-    def unstar(self, sids: list[str]=None, album_ids: list[str]=None,
-               artist_ids: list[str]=None) -> bool:
+    def unstar(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
+               artist_ids:list[str]|None=None) -> bool:
         """
         since 1.8.0
 
@@ -2112,11 +2097,11 @@ class Connection:
         same as star in reverse
 
         sids:list       A list of song IDs to star
-        album_ids:list   A list of album IDs to star.  Use this rather than
+        album_ids:list  A list of album IDs to star.  Use this rather than
                         "sids" if the client access the media collection
                         according to ID3 tags rather than file
                         structure
-        artist_ids:list  The ID of an artist to star.  Use this rather
+        artist_ids:list The ID of an artist to star.  Use this rather
                         than sids if the client access the media
                         collection according to ID3 tags rather
                         than file structure
@@ -2133,12 +2118,6 @@ class Connection:
         if artist_ids is None:
             artist_ids = []
 
-        if not isinstance(sids, list) or isinstance(sids, tuple):
-            sids = [sids]
-        if not isinstance(album_ids, list) or isinstance(album_ids, tuple):
-            album_ids = [album_ids]
-        if not isinstance(artist_ids, list) or isinstance(artist_ids, tuple):
-            artist_ids = [artist_ids]
         list_map = {'id': sids,
             'albumId': album_ids,
             'artistId': artist_ids}
@@ -2148,8 +2127,8 @@ class Connection:
         return True
 
 
-    def update_internet_radio_station(self, iid: str, stream_url: str, name: str,
-            homepage_url: str=None) -> bool:
+    def update_internet_radio_station(self, iid:str, stream_url:str, name:str,
+            homepage_url:str|None=None) -> bool:
         """
         since 1.16.0
 
@@ -2165,7 +2144,7 @@ class Connection:
         method = 'updateInternetRadioStation'
 
         q = self._get_query_dict({
-            'id': iid, 'streamUrl': stream_url, 'name': name,
+            'id': iid, 'streamUrl':stream_url, 'name': name,
             'homepageUrl': homepage_url,
         })
 
@@ -2175,9 +2154,9 @@ class Connection:
         return True
 
 
-    def update_playlist(self, lid: str, name: str=None, comment: str=None,
-                       song_ids_to_add: list[str]=None,
-                       song_indices_to_remove: list[int]=None) -> bool:
+    def update_playlist(self, lid:str, name:str|None=None, comment:str|None=None,
+                       song_ids_to_add:list[str]|None=None,
+                       song_indices_to_remove:list[int]|None=None) -> bool:
         """
         since 1.8.0
 
@@ -2208,12 +2187,6 @@ class Connection:
 
         q = self._get_query_dict({'playlistId': lid, 'name': name,
             'comment': comment})
-        if not isinstance(song_ids_to_add, list) or isinstance(song_ids_to_add,
-                tuple):
-            song_ids_to_add = [song_ids_to_add]
-        if not isinstance(song_indices_to_remove, list) or isinstance(
-                song_indices_to_remove, tuple):
-            song_indices_to_remove = [song_indices_to_remove]
         list_map = {'songIdToAdd': song_ids_to_add,
             'songIndexToRemove': song_indices_to_remove}
         res = self._do_request_with_lists(method, list_map, q)
@@ -2222,7 +2195,7 @@ class Connection:
         return True
 
 
-    def update_share(self, shid: str, description: str=None, expires: float=None) -> bool:
+    def update_share(self, shid:str, description:str|None=None, expires:float|None=None) -> bool:
         """
         since: 1.6.0
 
@@ -2240,7 +2213,7 @@ class Connection:
         method = 'updateShare'
 
         q = self._get_query_dict({'id': shid, 'description': description,
-            expires: self._ts2milli(expires)})
+            expires: self._ts2milli(int(expires or 0))})
 
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
@@ -2248,14 +2221,14 @@ class Connection:
         return True
 
 
-    def update_user(self, username: str,  password: str=None, email: str=None,
-            ldap_authed: bool=False, admin_role: bool=False,
-            settings_role: bool=True, stream_role: bool=True, jukebox_role: bool=False,
-            download_role: bool=False, upload_role: bool=False,
-            playlist_role: bool=False, cover_art_role: bool=False,
-            comment_role: bool=False, podcast_role: bool=False, share_role: bool=False,
-            video_conv_role: bool=False, music_folder_id: int=None,
-            max_bit_rate: int=0) -> bool:
+    def update_user(self, username:str,  password:str|None=None, email:str|None=None,
+            ldap_authed:bool=False, admin_role:bool=False,
+            settings_role:bool=True, stream_role:bool=True, jukebox_role:bool=False,
+            download_role:bool=False, upload_role:bool=False,
+            playlist_role:bool=False, cover_art_role:bool=False,
+            comment_role:bool=False, podcast_role:bool=False, share_role:bool=False,
+            video_conv_role:bool=False, music_folder_id:int|None=None,
+            max_bit_rate:int=0) -> bool:
         """
         since 1.10.1
 
@@ -2280,7 +2253,7 @@ class Connection:
         q = self._get_query_dict({'username': username, 'password': password,
             'email': email, 'ldapAuthenticated': ldap_authed,
             'adminRole': admin_role,
-            'settingsRole': settings_role, 'streamRole': stream_role,
+            'settingsRole': settings_role, 'streamRole':stream_role,
             'jukeboxRole': jukebox_role, 'downloadRole': download_role,
             'uploadRole': upload_role, 'playlistRole': playlist_role,
             'coverArtRole': cover_art_role, 'commentRole': comment_role,
@@ -2297,7 +2270,7 @@ class Connection:
     #
     # Private internal methods
     #
-    def _get_query_dict(self, d: dict) -> dict:
+    def _get_query_dict(self, d:dict) -> dict:
         """
         Given a dictionary, it cleans out all the values set to None
         """
@@ -2328,7 +2301,7 @@ class Connection:
         return qdict
 
 
-    def _do_request(self, method: str, query: dict=None, is_stream: bool=False) -> Response:
+    def _do_request(self, method:str, query:dict|None=None, is_stream:bool=False) -> Response:
         qdict = self._get_base_qdict()
         if query is not None:
             qdict.update(query)
@@ -2345,8 +2318,8 @@ class Connection:
         return res
 
 
-    def _do_request_with_list(self, method: str, list_name: str, alist: list,
-                           query: dict=None) -> Response:
+    def _do_request_with_list(self, method:str, list_name:str, alist:list,
+                           query:dict|None=None) -> Response:
         """
         Like _getRequest, but allows appending a number of items with the
         same key (listName).  This bypasses the limitation of urlencode()
@@ -2368,7 +2341,7 @@ class Connection:
         return res
 
 
-    def _do_request_with_lists(self, method: str, list_map: dict, query: dict=None) -> Response:
+    def _do_request_with_lists(self, method:str, list_map:dict, query:dict|None=None) -> Response:
         """
         Like _getRequestWithList(), but you must pass a dictionary
         that maps the listName to the list.  This allows for multiple
@@ -2415,15 +2388,14 @@ class Connection:
         return res
 
 
-    def _check_status(self, result: dict) -> bool:
-        if result['status'] == 'ok':
-            return True
-        elif result['status'] == 'failed':
+    def _check_status(self, result:dict) -> bool:
+        if result['status'] == 'failed':
             exc = errors.getExcByCode(result['error']['code'])
             raise exc(result['error']['message'])
+        return True
 
 
-    def _hex_enc(self, raw: str) -> str:
+    def _hex_enc(self, raw:str) -> str:
         """
         Returns a "hex encoded" string per the Subsonic api docs
 
@@ -2435,7 +2407,7 @@ class Connection:
         return ret
 
 
-    def _ts2milli(self, ts: int) -> int:
+    def _ts2milli(self, ts:int | None) -> int | None:
         """
         For whatever reason, Subsonic uses timestamps in milliseconds since
         the unix epoch.  I have no idea what need there is of this precision,
@@ -2466,7 +2438,7 @@ class Connection:
                     return self._fix_last_modified(item)
 
 
-    def _process_netrc(self, use_netrc):
+    def _process_netrc(self, use_netrc:str):
         """
         The use_netrc var is either a boolean, which means we should use
         the user's default netrc, or a string specifying a path to a
