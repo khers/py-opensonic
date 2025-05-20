@@ -1,3 +1,7 @@
+##7.0.2
+
+Cleanup strict type checking errors.
+
 ##7.0.1
 
 Our PodcastStatus Enum cannot be a data class
