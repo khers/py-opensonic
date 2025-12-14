@@ -40,7 +40,7 @@ class Connection:
     """
     def __init__(self, base_url:str, username:str, password:str, port:int=4040,
                  server_path:str='', app_name:str='py-opensonic', api_version:str=API_VERSION,
-                 insecure:bool=False, use_netrc:str|None=None, legacy_auth:bool=False,
+                 use_netrc:str|None=None, legacy_auth:bool=False,
                  use_get:bool=False, use_views:bool=True):
         """
         This will create a connection to your subsonic server
@@ -93,8 +93,6 @@ class Connection:
                             to find the Subsonic version -> API version table.
                             This is useful if you are connecting to an older
                             version of Subsonic.
-        insecure:bool       This will allow you to use self signed
-                            certificates when connecting if set to True.
         use_netrc:str|bool   You can either specify a specific netrc
                             formatted file or True to use your default
                             netrc file ($HOME/.netrc).
@@ -126,7 +124,6 @@ class Connection:
         self.set_port(port)
         self.set_app_name(app_name)
         self.set_server_path(server_path)
-        self.set_insecure(insecure)
 
 
     # Properties
@@ -175,12 +172,6 @@ class Connection:
             sep = '/'
         self._server_path = f"{path}{sep}rest".strip('/')
     server_path = property(lambda s: s._server_path, set_server_path)
-
-
-    def set_insecure(self, insecure:bool) -> None:
-        """ Set the insecure field. """
-        self._insecure = insecure
-    insecure = property(lambda s: s._insecure, set_insecure)
 
 
     def set_legacy_auth(self, lauth:bool) -> None:

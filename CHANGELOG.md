@@ -1,3 +1,8 @@
+##7.0.3
+
+Remove insecure flag from Connection object. This was vestigial from the Requests library refactor
+and was not used. Remove it to be clear that this is not supported.
+
 ##7.0.2
 
 Cleanup strict type checking errors.
