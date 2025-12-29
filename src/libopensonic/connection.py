@@ -1271,7 +1271,10 @@ class Connection:
         res = self._do_request(method, q)
         dres = self._handle_info_res(res)
         self._check_status(dres)
-        return [Playlist.from_dict(entry) for entry in dres['playlists']['playlist']]
+        if 'playlist' in dres['playlists']:
+            return [Playlist.from_dict(entry) for entry in dres['playlists']['playlist']]
+        else:
+            return [] 
 
 
     def get_play_queue(self) -> PlayQueue:

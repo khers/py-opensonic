@@ -1,3 +1,9 @@
+##7.0.4
+
+Check for 'playlist' item inside 'playlists' when invoking get_playlists end point. Not all servers
+include an empty array and some omit the internal key entirely. Protect against raising a KeyError
+by checking for presence.
+
 ##7.0.3
 
 Remove insecure flag from Connection object. This was vestigial from the Requests library refactor
