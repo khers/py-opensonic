@@ -1,3 +1,8 @@
+##8.0.1
+
+Add AsyncIO compatible AsyncConnection class for use in async event loops without jumping through
+hoops.
+
 ##7.0.4
 
 Check for 'playlist' item inside 'playlists' when invoking get_playlists end point. Not all servers

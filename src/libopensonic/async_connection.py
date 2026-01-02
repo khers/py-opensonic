@@ -2220,7 +2220,6 @@ class AsyncConnection(ConnBase[ClientResponse]):
         return await self._sess.post(url, data=qdict)
 
 
-
     async def _do_request_with_lists(self, method:str, list_map:dict, query:dict|None=None) -> ClientResponse:
         """
         Like _getRequestWithList(), but you must pass a dictionary
