@@ -19,11 +19,10 @@ from netrc import netrc
 from hashlib import md5
 import os
 
-from requests import get, post, Response
+import aiohttp
+from aiohttp import ClientResponse, ClientTimeout
 
-from typing import Union
-
-from .conn_base import API_VERSION, ConnBase
+from .conn_base import ConnBase, API_VERSION
 from . import errors
 from .media.media_types import (Album, AlbumID3, AlbumInfo, ArtistID3, ArtistInfo, ArtistInfo2,
                                 Artists, Bookmark, ChatMessage, Child, Directory, Error, Genre,
@@ -34,7 +33,7 @@ from .media.media_types import (Album, AlbumID3, AlbumInfo, ArtistID3, ArtistInf
                                 StructuredLyrics, User)
 
 
-class Connection(ConnBase[Response]):
+class AsyncConnection(ConnBase[ClientResponse]):
     """
     This is the only class used to make calls of an OpenSubsonic server. All return types are
     defined in media.media_types.py.
@@ -110,8 +109,9 @@ class Connection(ConnBase[Response]):
                        use_netrc, legacy_auth, use_get, use_views)
 
 
+
     # API methods
-    def add_chat_message(self, message:str) -> bool:
+    async def add_chat_message(self, message:str) -> bool:
         """
         since: 1.2.0
 
@@ -128,13 +128,13 @@ class Connection(ConnBase[Response]):
 
         q = {'message': message}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def change_password(self, username:str, password:str) -> bool:
+    async def change_password(self, username:str, password:str) -> bool:
         """
         since: 1.1.0
 
@@ -157,13 +157,13 @@ class Connection(ConnBase[Response]):
         #q = {'username': username, 'password': hexPass.lower()}
         q = {'username': username, 'password': password}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def create_bookmark(self, mid:str, position:int, comment:str|None=None) -> bool:
+    async def create_bookmark(self, mid:str, position:int, comment:str|None=None) -> bool:
         """
         since: 1.9.0
 
@@ -185,13 +185,13 @@ class Connection(ConnBase[Response]):
         q = self._get_query_dict({'id': mid, 'position': position,
             'comment': comment})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def create_internet_radio_station(self, stream_url:str, name:str,
+    async def create_internet_radio_station(self, stream_url:str, name:str,
                                       homepage_url:str|None=None) -> bool:
         """
         since 1.16.0
@@ -209,13 +209,13 @@ class Connection(ConnBase[Response]):
         q = self._get_query_dict({
             'streamUrl':stream_url, 'name': name, 'homepageUrl': homepage_url})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def create_playlist(self, playlist_id:str|None=None, name:str|None=None,
+    async def create_playlist(self, playlist_id:str|None=None, name:str|None=None,
                        song_ids:list[str]|None=None) -> bool:
         """
         since: 1.2.0
@@ -247,13 +247,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'playlistId': playlist_id, 'name': name})
 
-        res = self._do_request_with_list(method, 'songId', song_ids, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_list(method, 'songId', song_ids, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def create_podcast_channel(self, url:str) -> bool:
+    async def create_podcast_channel(self, url:str) -> bool:
         """
         since: 0.9.0
 
@@ -271,13 +271,13 @@ class Connection(ConnBase[Response]):
 
         q = {'url': url}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def create_share(self, shids:list[str]|None=None, description:str|None=None,
+    async def create_share(self, shids:list[str]|None=None, description:str|None=None,
                      expires:float|None=None) -> Share:
         """
         since: 1.6.0
@@ -307,13 +307,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'description': description,
             'expires': self._ts2milli(int(expires or 0))})
-        res = self._do_request_with_list(method, 'id', shids, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_list(method, 'id', shids, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Share.from_dict(dres['shares']['share'][0])
 
 
-    def create_user(self, username:str, password:str, email:str,
+    async def create_user(self, username:str, password:str, email:str,
             ldap_authed:bool=False, admin_role:bool=False,
             settings_role:bool=True, stream_role:bool=True, jukebox_role:bool=False,
             download_role:bool=False, upload_role:bool=False,
@@ -352,13 +352,13 @@ class Connection(ConnBase[Response]):
             'musicFolderId': music_folder_id
         })
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_bookmark(self, mid:str) -> bool:
+    async def delete_bookmark(self, mid:str) -> bool:
         """
         since: 1.9.0
 
@@ -376,13 +376,13 @@ class Connection(ConnBase[Response]):
 
         q = {'id': mid}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_internet_radio_station(self, iid:str) -> bool:
+    async def delete_internet_radio_station(self, iid:str) -> bool:
         """
         since 1.16.0
 
@@ -396,13 +396,13 @@ class Connection(ConnBase[Response]):
 
         q = {'id': iid}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_podcast_channel(self, pid:str) -> bool:
+    async def delete_podcast_channel(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -420,13 +420,13 @@ class Connection(ConnBase[Response]):
 
         q = {'id': pid}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_podcast_episode(self, pid:str) -> bool:
+    async def delete_podcast_episode(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -444,13 +444,13 @@ class Connection(ConnBase[Response]):
 
         q = {'id': pid}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_user(self, username:str) -> bool:
+    async def delete_user(self, username:str) -> bool:
         """
         since: 1.3.0
 
@@ -468,13 +468,13 @@ class Connection(ConnBase[Response]):
 
         q = {'username': username}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_playlist(self, pid:str) -> bool:
+    async def delete_playlist(self, pid:str) -> bool:
         """
         since: 1.2.0
 
@@ -489,13 +489,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'deletePlaylist'
 
-        res = self._do_request(method, {'id': pid})
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, {'id': pid})
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def download(self, sid:str) -> Response:
+    async def download(self, sid:str) -> ClientResponse:
         """
         since: 1.0.0
 
@@ -510,17 +510,14 @@ class Connection(ConnBase[Response]):
         """
         method = 'download'
 
-        res = self._do_request(method, {'id': sid})
-        dres = self._handle_bin_res(res)
+        res = await self._do_request(method, {'id': sid})
+        dres = await self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-            # The following raise is to make the type checker happy, we cannont get to it
-            # if dres is a dict as we will raise in _check_status
-            raise
         return dres
 
 
-    def download_podcast_episode(self, pid:str) -> bool:
+    async def download_podcast_episode(self, pid:str) -> bool:
         """
         since: 1.9.0
 
@@ -538,13 +535,13 @@ class Connection(ConnBase[Response]):
 
         q = {'id': pid}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def delete_share(self, shid:str) -> bool:
+    async def delete_share(self, shid:str) -> bool:
         """
         since: 1.6.0
 
@@ -561,13 +558,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': shid})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def get_album(self, album_id:str) -> AlbumID3:
+    async def get_album(self, album_id:str) -> AlbumID3:
         """
         since 1.8.0
 
@@ -584,13 +581,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': album_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return AlbumID3.from_dict(dres['album'])
 
 
-    def get_album_info(self, aid:str) -> AlbumInfo:
+    async def get_album_info(self, aid:str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -603,13 +600,13 @@ class Connection(ConnBase[Response]):
         method = 'getAlbumInfo'
 
         q = {'id': aid}
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return AlbumInfo.from_dict(dres['albumInfo'])
 
 
-    def get_album_info2(self, aid:str) -> AlbumInfo:
+    async def get_album_info2(self, aid:str) -> AlbumInfo:
         """
         since 1.14.0
 
@@ -622,13 +619,13 @@ class Connection(ConnBase[Response]):
         method = 'getAlbumInfo2'
 
         q = {'id': aid}
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return AlbumInfo.from_dict(dres['albumInfo'])
 
 
-    def get_album_list(self, ltype:str, size:int=10, offset:int=0, from_year:int|None=None,
+    async def get_album_list(self, ltype:str, size:int=10, offset:int=0, from_year:int|None=None,
             to_year:int|None=None, genre:str|None=None,
             music_folder_id:str|None=None) -> list[Album]:
         """
@@ -665,15 +662,15 @@ class Connection(ConnBase[Response]):
             'offset': offset, 'fromYear': from_year, 'toYear': to_year,
             'genre': genre, 'musicFolderId': music_folder_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'album' not in dres['albumList']:
             return []
         return [Album.from_dict(entry) for entry in dres['albumList']['album']]
 
 
-    def get_album_list2(self, ltype:str, size:int=10, offset:int=0,
+    async def get_album_list2(self, ltype:str, size:int=10, offset:int=0,
                       from_year:int|None=None, to_year:int|None=None,
                       genre:str|None=None) -> list[AlbumID3]:
         """
@@ -708,15 +705,15 @@ class Connection(ConnBase[Response]):
             'offset': offset, 'fromYear': from_year, 'toYear': to_year,
             'genre': genre})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'album' not in dres['albumList2']:
             return []
         return [AlbumID3.from_dict(entry) for entry in dres['albumList2']['album']]
 
 
-    def get_artist(self, artist_id:str) -> ArtistID3:
+    async def get_artist(self, artist_id:str) -> ArtistID3:
         """
         since 1.8.0
 
@@ -733,13 +730,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': artist_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return ArtistID3.from_dict(dres['artist'])
 
 
-    def get_artists(self) -> Artists:
+    async def get_artists(self) -> Artists:
         """
         since 1.8.0
 
@@ -752,14 +749,14 @@ class Connection(ConnBase[Response]):
         """
         method = 'getArtists'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
 
         return Artists.from_dict(dres['artists'])
 
 
-    def get_artist_info(self, aid:str, count:int=20,
+    async def get_artist_info(self, aid:str, count:int=20,
                         include_not_present:bool=False) -> ArtistInfo:
         """
         since: 1.11.0
@@ -778,13 +775,13 @@ class Connection(ConnBase[Response]):
         q = {'id': aid, 'count': count,
             'includeNotPresent': include_not_present}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return ArtistInfo.from_dict(dres['artistInfo'])
 
 
-    def get_artist_info2(self, aid:str, count:int=20,
+    async def get_artist_info2(self, aid:str, count:int=20,
                          include_not_present:bool=False) -> ArtistInfo2:
         """
         since: 1.11.0
@@ -803,13 +800,13 @@ class Connection(ConnBase[Response]):
         q = {'id': aid, 'count': count,
             'includeNotPresent': include_not_present}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return ArtistInfo2.from_dict(dres['artistInfo2'])
 
 
-    def get_avatar(self, username:str) -> Response:
+    async def get_avatar(self, username:str) -> ClientResponse:
         """
         since 1.8.0
 
@@ -819,24 +816,21 @@ class Connection(ConnBase[Response]):
 
         username:str    The user to retrieve the avatar for
 
-        Returns the requests.Response object for reading on success or raises
+        Returns the aiohttp.ClientResponse object for reading on success or raises
         and exception
         """
         method = 'getAvatar'
 
         q = {'username': username}
 
-        res = self._do_request(method, q)
-        dres = self._handle_bin_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-            # The following raise is to make the type checker happy, we cannont get to it
-            # if dres is a dict as we will raise in _check_status
-            raise
         return dres
 
 
-    def get_bookmarks(self) -> list[Bookmark]:
+    async def get_bookmarks(self) -> list[Bookmark]:
         """
         since: 1.9.0
 
@@ -847,13 +841,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getBookmarks'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [Bookmark.from_dict(b) for b in dres['bookmarks']['bookmark']]
 
 
-    def get_captions(self, vid, fmt=None):
+    async def get_captions(self, vid, fmt=None):
         """
         since 1.14.0
 
@@ -866,13 +860,13 @@ class Connection(ConnBase[Response]):
         method = 'getCaptions'
 
         q = self._get_query_dict({'id':int(vid), 'format': fmt})
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return dres
 
 
-    def get_chat_messages(self, since:int=1) -> list[ChatMessage]:
+    async def get_chat_messages(self, since:int=1) -> list[ChatMessage]:
         """
         since: 1.2.0
 
@@ -891,13 +885,13 @@ class Connection(ConnBase[Response]):
 
         q = {'since': self._ts2milli(since)}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [ChatMessage.from_dict(dres['chatMessages']['chatMessage'])]
 
 
-    def get_cover_art(self, aid:str, size:int|None=None) -> Response:
+    async def get_cover_art(self, aid:str, size:int|None=None) -> ClientResponse:
         """
         since: 1.0.0
 
@@ -915,17 +909,14 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': aid, 'size': size})
 
-        res = self._do_request(method, q, is_stream=True)
-        dres = self._handle_bin_res(res)
+        res = await self._do_request(method, q, is_stream=True)
+        dres = await self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-            # The following raise is to make the type checker happy, we cannont get to it
-            # if dres is a dict as we will raise in _check_status
-            raise
         return dres
 
 
-    def get_genres(self) -> list[Genre]:
+    async def get_genres(self) -> list[Genre]:
         """
         since 1.9.0
 
@@ -935,13 +926,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getGenres'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [Genre.from_dict(g) for g in dres['genres']['genre']]
 
 
-    def get_indexes(self, music_folder_id:int|None=None, if_modified_since:int|None=None) -> Indexes:
+    async def get_indexes(self, music_folder_id:int|None=None, if_modified_since:int|None=None) -> Indexes:
         """
         since: 1.0.0
 
@@ -964,13 +955,13 @@ class Connection(ConnBase[Response]):
         q = self._get_query_dict({'musicFolderId': music_folder_id,
             'ifModifiedSince': self._ts2milli(if_modified_since) if if_modified_since else 0})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Indexes.from_dict(dres['indexes'])
 
 
-    def get_internet_radio_stations(self) -> list[InternetRadioStation]:
+    async def get_internet_radio_stations(self) -> list[InternetRadioStation]:
         """
         since: 1.9.0
 
@@ -980,14 +971,14 @@ class Connection(ConnBase[Response]):
         """
         method = 'getInternetRadioStations'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [InternetRadioStation.from_dict(i)
                 for i in dres['internetRadioStations']['internetRadioStation']]
 
 
-    def get_license(self) -> dict:
+    async def get_license(self) -> dict:
         """
         since: 1.0.0
 
@@ -1007,13 +998,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getLicense'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return dres
 
 
-    def get_lyrics(self, artist:str|None=None, title:str|None=None) -> Lyrics:
+    async def get_lyrics(self, artist:str|None=None, title:str|None=None) -> Lyrics:
         """
         since: 1.2.0
 
@@ -1031,13 +1022,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'artist': artist, 'title': title})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Lyrics.from_dict(dres['lyrics'])
 
 
-    def get_lyrics_by_song_id(self, song_id:str) -> list[StructuredLyrics]:
+    async def get_lyrics_by_song_id(self, song_id:str) -> list[StructuredLyrics]:
         """
         Since Open Subsonic ver 1
 
@@ -1055,13 +1046,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': song_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [StructuredLyrics.from_dict(l) for l in dres['lyricsList']['structuredLyrics']]
 
 
-    def get_music_directory(self, mid:str) -> Directory:
+    async def get_music_directory(self, mid:str) -> Directory:
         """
         since: 1.0.0
 
@@ -1078,13 +1069,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getMusicDirectory'
 
-        res = self._do_request(method, {'id': mid})
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, {'id': mid})
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Directory.from_dict(dres['directory'])
 
 
-    def get_music_folders(self) -> list[MusicFolder]:
+    async def get_music_folders(self) -> list[MusicFolder]:
         """
         since: 1.0.0
 
@@ -1096,13 +1087,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getMusicFolders'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [MusicFolder.from_dict(f) for f in dres["musicFolders"]]
 
 
-    def get_newest_podcasts(self, count:int=20) -> list[PodcastEpisode]:
+    async def get_newest_podcasts(self, count:int=20) -> list[PodcastEpisode]:
         """
         since 1.13.0
 
@@ -1116,15 +1107,15 @@ class Connection(ConnBase[Response]):
 
         q = {'count': count}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'newestPodcasts' not in dres or 'episode' not in dres['newestPodcasts']:
             return []
         return [PodcastEpisode.from_dict(entry) for entry in dres['newestPodcasts']['episode']]
 
 
-    def get_now_playing(self) -> list[NowPlayingEntry]:
+    async def get_now_playing(self) -> list[NowPlayingEntry]:
         """
         since: 1.0.0
 
@@ -1134,13 +1125,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getNowPlaying'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [NowPlayingEntry.from_dict(n) for n in dres['nowPlaying']['entry']]
 
 
-    def get_open_subsonic_extensions(self) -> list[OpenSubsonicExtension]:
+    async def get_open_subsonic_extensions(self) -> list[OpenSubsonicExtension]:
         """
         since OpenSubsonic 1
 
@@ -1152,13 +1143,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getOpenSubsonicExtensions'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [OpenSubsonicExtension.from_dict(o) for o in dres['openSubsonicExtensions']]
 
 
-    def get_playlist(self, pid:str) -> Playlist:
+    async def get_playlist(self, pid:str) -> Playlist:
         """
         since: 1.0.0
 
@@ -1171,13 +1162,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getPlaylist'
 
-        res = self._do_request(method, {'id': pid})
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, {'id': pid})
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Playlist.from_dict(dres['playlist'])
 
 
-    def get_playlists(self, username:str|None=None) -> list[Playlist]:
+    async def get_playlists(self, username:str|None=None) -> list[Playlist]:
         """
         since: 1.0.0
 
@@ -1201,8 +1192,8 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'username': username})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'playlist' in dres['playlists']:
             return [Playlist.from_dict(entry) for entry in dres['playlists']['playlist']]
@@ -1210,7 +1201,7 @@ class Connection(ConnBase[Response]):
             return [] 
 
 
-    def get_play_queue(self) -> PlayQueue:
+    async def get_play_queue(self) -> PlayQueue:
         """
         since 1.12.0
 
@@ -1225,13 +1216,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getPlayQueue'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return PlayQueue.from_dict(dres['playQueue'])
 
 
-    def get_podcasts(self, inc_episodes:bool=True, pid:str|None=None) -> list[PodcastChannel]:
+    async def get_podcasts(self, inc_episodes:bool=True, pid:str|None=None) -> list[PodcastChannel]:
         """
         since: 1.6.0
 
@@ -1251,13 +1242,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'includeEpisodes': inc_episodes,
             'id': pid})
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [PodcastChannel.from_dict(entry) for entry in dres['podcasts']['channel']]
 
 
-    def get_random_songs(self, size:int=10, genre:str|None=None, from_year:int|None=None,
+    async def get_random_songs(self, size:int=10, genre:str|None=None, from_year:int|None=None,
             to_year:int|None=None, music_folder_id:str|None=None) -> list[Child]:
         """
         since 1.2.0
@@ -1279,13 +1270,13 @@ class Connection(ConnBase[Response]):
             'fromYear': from_year, 'toYear': to_year,
             'musicFolderId': music_folder_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [Child.from_dict(entry) for entry in dres['randomSongs']['song']]
 
 
-    def get_scan_status(self) -> ScanStatus:
+    async def get_scan_status(self) -> ScanStatus:
         """
         since: 1.15.0
 
@@ -1301,13 +1292,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getScanStatus'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return ScanStatus.from_dict(dres['scanstatus'])
 
 
-    def get_shares(self) -> list[Share]:
+    async def get_shares(self) -> list[Share]:
         """
         since: 1.6.0
 
@@ -1321,13 +1312,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getShares'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [Share.from_dict(s) for s in dres['shares']['share']]
 
 
-    def get_similar_songs(self, iid:str, count:int=50) -> list[Child]:
+    async def get_similar_songs(self, iid:str, count:int=50) -> list[Child]:
         """
         since 1.11.0
 
@@ -1344,15 +1335,15 @@ class Connection(ConnBase[Response]):
 
         q = {'id': iid, 'count': count}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'similarSongs' not in dres or 'song' not in dres['similarSongs']:
             return []
         return [Child.from_dict(entry) for entry in dres['similarSongs']['song']]
 
 
-    def get_similar_songs2(self, iid:str, count:int=50) -> list[Child]:
+    async def get_similar_songs2(self, iid:str, count:int=50) -> list[Child]:
         """
         since 1.11.0
 
@@ -1368,15 +1359,15 @@ class Connection(ConnBase[Response]):
 
         q = {'id': iid, 'count': count}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'similarSongs2' not in dres or 'song' not in dres['similarSongs2']:
             return []
         return [Child.from_dict(entry) for entry in dres['similarSongs2']['song']]
 
 
-    def get_song(self, sid:str) -> Child:
+    async def get_song(self, sid:str) -> Child:
         """
         since 1.8.0
 
@@ -1393,13 +1384,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': sid})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Child.from_dict(dres['song'])
 
 
-    def get_songs_by_genre(self, genre:str, count:int=10, offset:int=0,
+    async def get_songs_by_genre(self, genre:str, count:int=10, offset:int=0,
                            music_folder_id:str|None=None) -> list[Child]:
         """
         since 1.9.0
@@ -1423,13 +1414,13 @@ class Connection(ConnBase[Response]):
             'musicFolderId': music_folder_id,
         })
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [Child.from_dict(entry) for entry in dres['songsByGenre']['song']]
 
 
-    def get_starred(self, music_folder_id:str|None=None) -> Starred:
+    async def get_starred(self, music_folder_id:str|None=None) -> Starred:
         """
         since 1.8.0
 
@@ -1446,13 +1437,13 @@ class Connection(ConnBase[Response]):
         if music_folder_id:
             q['musicFolderId'] = music_folder_id
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Starred.from_dict(dres['starred'])
 
 
-    def get_starred2(self, music_folder_id:str|None=None) -> Starred2:
+    async def get_starred2(self, music_folder_id:str|None=None) -> Starred2:
         """
         since 1.8.0
 
@@ -1472,13 +1463,13 @@ class Connection(ConnBase[Response]):
         if music_folder_id:
             q['musicFolderId'] = music_folder_id
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return Starred2.from_dict(dres['starred2'])
 
 
-    def get_top_songs(self, artist:str, count:int=50) -> list[Child]:
+    async def get_top_songs(self, artist:str, count:int=50) -> list[Child]:
         """
         since 1.13.0
 
@@ -1493,15 +1484,15 @@ class Connection(ConnBase[Response]):
 
         q = {'artist': artist, 'count': count}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         if 'topSongs' not in dres or 'song' not in dres['topSongs']:
             return []
         return [Child.from_dict(entry) for entry in dres['topSongs']['song']]
 
 
-    def get_user(self, username:str) -> User:
+    async def get_user(self, username:str) -> User:
         """
         since: 1.3.0
 
@@ -1520,13 +1511,13 @@ class Connection(ConnBase[Response]):
 
         q = {'username': username}
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return User.from_dict(dres['user'])
 
 
-    def get_users(self) -> list[User]:
+    async def get_users(self) -> list[User]:
         """
         since 1.8.0
 
@@ -1539,13 +1530,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getUsers'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return [User.from_dict(u) for u in dres['users']['user']]
 
 
-    def get_videos(self) -> dict:
+    async def get_videos(self) -> dict:
         """
         since 1.8.0
 
@@ -1555,13 +1546,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'getVideos'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return dres
 
 
-    def get_video_info(self, vid):
+    async def get_video_info(self, vid):
         """
         since 0.14.0
 
@@ -1573,13 +1564,13 @@ class Connection(ConnBase[Response]):
         method = 'getVideoInfo'
 
         q = {'id':int(vid)}
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return dres
 
 
-    def hls (self, mid, bitrate=None):
+    async def hls (self, mid, bitrate=None):
         """
         since 0.8.0
 
@@ -1608,15 +1599,14 @@ class Connection(ConnBase[Response]):
         method = 'hls'
 
         q = self._get_query_dict({'id': mid, 'bitrate': bitrate})
-        res = self._do_request(method, q)
-        dres = self._handle_bin_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-            return
         return dres.content
 
 
-    def jukebox_control(self, action:str, index:int|None=None, sids:list[str]|None=None,
+    async def jukebox_control(self, action:str, index:int|None=None, sids:list[str]|None=None,
                        gain:float|None=None, offset:int|None=None) -> JukeboxStatus|JukeboxPlaylist:
         """
         since: 1.2.0
@@ -1661,10 +1651,10 @@ class Connection(ConnBase[Response]):
             if not (isinstance(sids, list) or isinstance(sids, tuple)):
                 raise errors.ArgumentError('If you are adding songs, "sids" must '
                     'be a list or tuple!')
-            res = self._do_request_with_list(method, 'id', sids, q)
+            res = await self._do_request_with_list(method, 'id', sids, q)
         else:
-            res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+            res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
 
         if action == 'get':
@@ -1673,7 +1663,7 @@ class Connection(ConnBase[Response]):
         return JukeboxStatus.from_dict(dres['jukeboxStatus'])
 
 
-    def ping(self) -> bool:
+    async def ping(self) -> bool:
         """
         since: 1.0.0
 
@@ -1683,8 +1673,8 @@ class Connection(ConnBase[Response]):
         """
         method = 'ping'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         if dres['status'] == 'ok':
             return True
         elif dres['status'] == 'failed':
@@ -1694,7 +1684,7 @@ class Connection(ConnBase[Response]):
         return False
 
 
-    def refresh_podcasts(self) -> bool:
+    async def refresh_podcasts(self) -> bool:
         """
         since: 1.9.0
 
@@ -1708,13 +1698,13 @@ class Connection(ConnBase[Response]):
         """
         method = 'refreshPodcasts'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def save_play_queue(self, qids, current=None, position=None) -> bool:
+    async def save_play_queue(self, qids, current=None, position=None) -> bool:
         """
         since 0.12.0
 
@@ -1738,13 +1728,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'current': current, 'position': position})
 
-        res = self._do_request_with_lists(method, {'id': qids}, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_lists(method, {'id': qids}, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def scrobble(self, sid:str, submission:bool=True, listen_time:int|None=None) -> bool:
+    async def scrobble(self, sid:str, submission:bool=True, listen_time:int|None=None) -> bool:
         """
         since: 1.5.0
 
@@ -1775,24 +1765,13 @@ class Connection(ConnBase[Response]):
         q = self._get_query_dict({'id': sid, 'submission': submission,
             'time': self._ts2milli(listen_time)})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    #@deprecated("The search method has been deprecated since 1.4.0, use search[2|3] instead")
-    def search(self, artist=None, album=None, title=None, dummy=None,
-            count=20, offset=0, newer_than=None):
-        """
-        since: 1.0.0
-
-        DEPRECATED SINCE API 1.4.0!  USE search3() INSTEAD!
-        """
-        raise NotImplementedError("search is deprecated in favor of search2 or search3")
-
-
-    def search2(self, query:str, artist_count:int=20, artist_offset:int=0,
+    async def search2(self, query:str, artist_count:int=20, artist_offset:int=0,
                 album_count:int=20, album_offset:int=0, song_count:int=20,
                 song_offset:int=0, music_folder_id:int|None=None) -> SearchResult2:
         """
@@ -1822,13 +1801,13 @@ class Connection(ConnBase[Response]):
             'albumOffset': album_offset, 'songCount': song_count,
             'songOffset': song_offset, 'musicFolderId': music_folder_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return SearchResult2.from_dict(dres['searchResult2'])
 
 
-    def search3(self, query:str, artist_count:int=20, artist_offset:int=0,
+    async def search3(self, query:str, artist_count:int=20, artist_offset:int=0,
                 album_count:int=20, album_offset:int=0, song_count:int=20,
                 song_offset:int=0, music_folder_id:int|None=None) -> SearchResult3:
         """
@@ -1858,13 +1837,13 @@ class Connection(ConnBase[Response]):
             'albumOffset': album_offset, 'songCount': song_count,
             'songOffset': song_offset, 'musicFolderId': music_folder_id})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return SearchResult3.from_dict(dres['searchResult3'])
 
 
-    def set_rating(self, item_id:str, rating:int) -> bool:
+    async def set_rating(self, item_id:str, rating:int) -> bool:
         """
         since: 1.6.0
 
@@ -1892,13 +1871,13 @@ class Connection(ConnBase[Response]):
 
         q = self._get_query_dict({'id': item_id, 'rating': rating})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def star(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
+    async def star(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
              artist_ids:list[str]|None=None) -> bool:
         """
         since 1.8.0
@@ -1932,13 +1911,13 @@ class Connection(ConnBase[Response]):
         list_map = {'id': sids,
             'albumId': album_ids,
             'artistId': artist_ids}
-        res = self._do_request_with_lists(method, list_map)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_lists(method, list_map)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def start_scan(self) -> ScanStatus:
+    async def start_scan(self) -> ScanStatus:
         """
         since: 1.15.0
 
@@ -1955,15 +1934,15 @@ class Connection(ConnBase[Response]):
         """
         method = 'startScan'
 
-        res = self._do_request(method)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return ScanStatus.from_dict(dres['scanstatus'])
 
 
-    def stream(self, sid:str, max_bit_rate:int=0, tformat:str|None=None,
+    async def stream(self, sid:str, max_bit_rate:int=0, tformat:str|None=None,
                time_offset:int|None=None, size:str|None=None,
-               estimate_length:bool=False, converted:bool=False) -> Response:
+               estimate_length:bool=False, converted:bool=False) -> ClientResponse:
         """
         since: 1.0.0
 
@@ -2007,17 +1986,14 @@ class Connection(ConnBase[Response]):
             'estimateContentLength': estimate_length,
             'converted': converted})
 
-        res = self._do_request(method, q, is_stream=True)
-        dres: Response | dict = self._handle_bin_res(res)
+        res = await self._do_request(method, q, is_stream=True)
+        dres = await self._handle_bin_res(res)
         if isinstance(dres, dict):
             self._check_status(dres)
-            # The following raise is to make the type checker happy, we cannont get to it
-            # if dres is a dict as we will raise in _check_status
-            raise
         return dres
 
 
-    def unstar(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
+    async def unstar(self, sids:list[str]|None=None, album_ids:list[str]|None=None,
                artist_ids:list[str]|None=None) -> bool:
         """
         since 1.8.0
@@ -2052,13 +2028,13 @@ class Connection(ConnBase[Response]):
         list_map = {'id': sids,
             'albumId': album_ids,
             'artistId': artist_ids}
-        res = self._do_request_with_lists(method, list_map)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_lists(method, list_map)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def update_internet_radio_station(self, iid:str, stream_url:str, name:str,
+    async def update_internet_radio_station(self, iid:str, stream_url:str, name:str,
             homepage_url:str|None=None) -> bool:
         """
         since 1.16.0
@@ -2079,13 +2055,13 @@ class Connection(ConnBase[Response]):
             'homepageUrl': homepage_url,
         })
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def update_playlist(self, lid:str, name:str|None=None, comment:str|None=None,
+    async def update_playlist(self, lid:str, name:str|None=None, comment:str|None=None,
                        song_ids_to_add:list[str]|None=None,
                        song_indices_to_remove:list[int]|None=None) -> bool:
         """
@@ -2120,13 +2096,13 @@ class Connection(ConnBase[Response]):
             'comment': comment})
         list_map = {'songIdToAdd': song_ids_to_add,
             'songIndexToRemove': song_indices_to_remove}
-        res = self._do_request_with_lists(method, list_map, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request_with_lists(method, list_map, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def update_share(self, shid:str, description:str|None=None, expires:float|None=None) -> bool:
+    async def update_share(self, shid:str, description:str|None=None, expires:float|None=None) -> bool:
         """
         since: 1.6.0
 
@@ -2146,13 +2122,13 @@ class Connection(ConnBase[Response]):
         q = self._get_query_dict({'id': shid, 'description': description,
             expires: self._ts2milli(int(expires or 0))})
 
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
 
-    def update_user(self, username:str,  password:str|None=None, email:str|None=None,
+    async def update_user(self, username:str,  password:str|None=None, email:str|None=None,
             ldap_authed:bool=False, admin_role:bool=False,
             settings_role:bool=True, stream_role:bool=True, jukebox_role:bool=False,
             download_role:bool=False, upload_role:bool=False,
@@ -2192,8 +2168,8 @@ class Connection(ConnBase[Response]):
             'videoConversionRole': video_conv_role,
             'musicFolderId': music_folder_id, 'maxBitRate': max_bit_rate
         })
-        res = self._do_request(method, q)
-        dres = self._handle_info_res(res)
+        res = await self._do_request(method, q)
+        dres = await self._handle_info_res(res)
         self._check_status(dres)
         return True
 
@@ -2201,7 +2177,7 @@ class Connection(ConnBase[Response]):
     #
     # Private internal methods
     #
-    def _do_request(self, method:str, query:dict|None=None, is_stream:bool=False) -> Response:
+    async def _do_request(self, method:str, query:dict|None=None, is_stream:bool=False) -> ClientResponse:
         qdict = self._get_base_qdict()
         if query is not None:
             qdict.update(query)
@@ -2210,13 +2186,18 @@ class Connection(ConnBase[Response]):
             method += '.view'
         url = f"{self._base_url}:{self._port}/{self._server_path}/{method}"
 
+        if not hasattr(self, "_sess"):
+            timeout = ClientTimeout(total=None, sock_connect=30, sock_read=60)
+            self._sess = aiohttp.ClientSession(timeout=timeout)
+
         if self._use_get:
-            return get(url, params=qdict, stream=is_stream, timeout=(30, 60))
-        return post(url, data=qdict, stream=is_stream, timeout=(30, 60))
+            return await self._sess.get(url, params=qdict)
+        return await self._sess.post(url, data=qdict)
 
 
-    def _do_request_with_list(self, method:str, list_name:str, alist:list,
-                           query:dict|None=None) -> Response:
+
+    async def _do_request_with_list(self, method:str, list_name:str, alist:list,
+                           query:dict|None=None) -> ClientResponse:
         """
         Like _getRequest, but allows appending a number of items with the
         same key (listName).  This bypasses the limitation of urlencode()
@@ -2230,12 +2211,17 @@ class Connection(ConnBase[Response]):
             method += '.view'
         url = f"{self._base_url}:{self._port}/{self._server_path}/{method}"
 
+        if not hasattr(self, "_sess"):
+            timeout = ClientTimeout(total=None, sock_connect=30, sock_read=60)
+            self._sess = aiohttp.ClientSession(timeout=timeout)
+
         if self._use_get:
-            return get(url, params=qdict, timeout=(30, 60))
-        return post(url, data=qdict, timeout=(30, 60))
+            return await self._sess.get(url, params=qdict)
+        return await self._sess.post(url, data=qdict)
 
 
-    def _do_request_with_lists(self, method:str, list_map:dict, query:dict|None=None) -> Response:
+
+    async def _do_request_with_lists(self, method:str, list_map:dict, query:dict|None=None) -> ClientResponse:
         """
         Like _getRequestWithList(), but you must pass a dictionary
         that maps the listName to the list.  This allows for multiple
@@ -2255,27 +2241,30 @@ class Connection(ConnBase[Response]):
 
         url = f"{self._base_url}:{self._port}/{self._server_path}/{method}"
 
+        if not hasattr(self, "_sess"):
+            timeout = ClientTimeout(total=None, sock_connect=30, sock_read=60)
+            self._sess = aiohttp.ClientSession(timeout=timeout)
+
         if self._use_get:
-            return get(url, params=qdict, timeout=(60,300))
-        return post(url, data=qdict, timeout=(60,300))
+            return await self._sess.get(url, params=qdict)
+        return await self._sess.post(url, data=qdict)
 
 
-
-    def _handle_info_res(self, res: Response) -> dict:
+    async def _handle_info_res(self, res: ClientResponse) -> dict:
         # Returns a parsed dictionary version of the result
         res.raise_for_status()
-        dres = res.json()["subsonic-response"]
+        data = await res.json()
+        dres = data["subsonic-response"]
         self._check_status(dres)
-        return dres['subsonic-response']
+        return dres
 
 
-    def _handle_bin_res(self, res: Response) -> Response:
+    async def _handle_bin_res(self, res: ClientResponse) -> ClientResponse:
         res.raise_for_status()
-        ct = res.headers['Content-Type'] if 'Content-Type' in res.headers else None
-
-        if ct:
-            if ct.startswith('text/html') or ct.startswith('application/json'):
-                dres = res.json()["subsonic-response"]
-                self._check_status(dres)
-                raise
+        ct = res.headers.get("Content-Type","")
+        if ct.startswith("application/json") or ct.startswith("text/html"):
+            data = await res.json()
+            dres = data["subsonic-response"]
+            self._check_status(dres)
+            raise
         return res

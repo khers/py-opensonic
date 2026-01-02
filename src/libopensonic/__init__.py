@@ -35,3 +35,4 @@ except ImportError:
     pass
 
 from .connection import Connection
+from .async_connection import AsyncConnection

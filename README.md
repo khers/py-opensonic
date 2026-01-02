@@ -5,6 +5,11 @@ This started its life as the [py-sonic](https://github.com/crustymonkey/py-sonic
 I have tested with Gonic (and continue to do so against each stable docker
 release). Please open issues if you discover problems with other implementations.
 
+As of 8.0.0 this library now offers an AsyncConnection object that uses aiohttp for all
+its http requests. It does not create an event loop so is usable inside any application
+built on asyncio. The Connection object will continue to use synchronous IO and will
+remain for backward compatibility.
+
 ## INSTALL ##
 
 Installation is fairly simple.  Just do the standard install as root:
@@ -55,3 +60,9 @@ provided in the library:
 
 or the api docs on opensubsonic.netlify.app (listed above), you should be
 able to make use of your server without too much trouble.
+
+## Async/Sync Cohabitation ##
+
+Adding the async impl along with a sync one was not done in the most
+pythonic way and should be revisited to avoid some of the code
+duplication. I will eventually get to it, but patches welcome!
