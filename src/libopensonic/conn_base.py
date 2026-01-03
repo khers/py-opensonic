@@ -36,7 +36,7 @@ class ConnBase(ABC, Generic[ResponseT]):
     defined in media.media_types.py.
     """
     def __init__(self, base_url:str, username:str, password:str, port:int=4040,
-                 api_key:str=None, server_path:str='', app_name:str='py-opensonic', api_version:str=API_VERSION,
+                 api_key:str|None=None, server_path:str='', app_name:str='py-opensonic', api_version:str=API_VERSION,
                  use_netrc:str|None=None, legacy_auth:bool=False,
                  use_get:bool=False, use_views:bool=True):
         """
