@@ -78,3 +78,8 @@ scripts/gen_sync.py and add the resulting changes to the synchronous class as we
 
 Any PRs that change the synchronous class by hand or without updating the asynchronous one and/or
 the gen_sync.py script will be immediately closed.
+
+## pytest
+
+There are now pytest unit tests which are configured to run on any new PR, these tests must be
+passing to merge. Please add tests to any fixes or new features.
