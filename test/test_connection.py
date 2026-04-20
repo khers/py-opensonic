@@ -1446,7 +1446,7 @@ class TestScanExtensions:
     async def test_get_scan_status(self, conn, mock_session, mock_response):
         """Test get_scan_status."""
         status = {
-            "scanstatus": {
+            "scanStatus": {
                 "scanning": False,
                 "count": 1000
             }
@@ -1457,12 +1457,13 @@ class TestScanExtensions:
         result = await conn.get_scan_status()
         assert isinstance(result, ScanStatus)
         assert result.scanning is False
+        assert result.count == 1000
 
     @pytest.mark.asyncio
     async def test_start_scan(self, conn, mock_session, mock_response):
         """Test start_scan."""
         status = {
-            "scanstatus": {
+            "scanStatus": {
                 "scanning": True,
                 "count": 0
             }
@@ -1473,6 +1474,7 @@ class TestScanExtensions:
         result = await conn.start_scan()
         assert isinstance(result, ScanStatus)
         assert result.scanning is True
+        assert result.count == 0
 
     @pytest.mark.asyncio
     async def test_get_open_subsonic_extensions(self, conn, mock_session, mock_response):

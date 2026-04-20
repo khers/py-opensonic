@@ -1401,7 +1401,7 @@ class Connection:
         res = self._do_request(method)
         dres = self._handle_info_res(res)
         self._check_status(dres)
-        return ScanStatus.from_dict(dres['scanstatus'])
+        return ScanStatus.from_dict(dres['scanStatus'])
 
 
     def get_shares(self) -> list[Share]:
@@ -2057,7 +2057,7 @@ class Connection:
         res = self._do_request(method)
         dres = self._handle_info_res(res)
         self._check_status(dres)
-        return ScanStatus.from_dict(dres['scanstatus'])
+        return ScanStatus.from_dict(dres['scanStatus'])
 
 
     def stream(self, sid:str, max_bit_rate:int=0, tformat:str|None=None,
