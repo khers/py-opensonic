@@ -823,7 +823,8 @@ class AsyncConnection:
 
     async def get_album_list2(self, ltype:str, size:int=10, offset:int=0,
                       from_year:int|None=None, to_year:int|None=None,
-                      genre:str|None=None) -> list[AlbumID3]:
+                      genre:str|None=None,
+                      music_folder_id:int|None=None) -> list[AlbumID3]:
         """Return a list of albums filtered by type, organized using ID3 tags.
 
         Similar to get_album_list but uses ID3 tags for organization.
@@ -840,6 +841,8 @@ class AsyncConnection:
             from_year: Required when ltype is "byYear". Start of year range.
             to_year: Required when ltype is "byYear". End of year range.
             genre: Required when ltype is "byGenre". The genre name, e.g. "Rock".
+            music_folder_id: Only return albums in this music folder.
+                See get_music_folders().
 
         Returns:
             A list of media.AlbumID3 objects.
@@ -851,7 +854,7 @@ class AsyncConnection:
 
         q = self._get_query_dict({'type': ltype, 'size': size,
             'offset': offset, 'fromYear': from_year, 'toYear': to_year,
-            'genre': genre})
+            'genre': genre, 'musicFolderId': music_folder_id})
 
         res = await self._do_request(method, q)
         dres = await self._handle_info_res(res)

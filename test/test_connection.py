@@ -1003,6 +1003,28 @@ class TestAlbumSongLists:
         assert isinstance(result[0], AlbumID3)
 
     @pytest.mark.asyncio
+    async def test_get_album_list2_with_music_folder(
+        self, conn, mock_session, mock_response
+    ):
+        """Test get_album_list2 with a music folder filter."""
+        albums = {
+            "albumList2": {
+                "album": [
+                    {"id": "alb-1", "name": "Album 1", "songCount": 5,
+                     "duration": 1800, "created": "2024-01-01T00:00:00"}
+                ]
+            }
+        }
+        set_json_response(mock_response, make_response(albums))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        result = await conn.get_album_list2("frequent", music_folder_id=1)
+        assert len(result) == 1
+        assert isinstance(result[0], AlbumID3)
+        data = mock_session.post.call_args.kwargs["data"]
+        assert data["musicFolderId"] == "1"
+
+    @pytest.mark.asyncio
     async def test_get_random_songs_empty(self, conn, mock_session, mock_response):
         """Test get_random_songs with empty result."""
         set_json_response(mock_response, make_response({"randomSongs": {}}))
