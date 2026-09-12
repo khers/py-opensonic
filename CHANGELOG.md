@@ -1,3 +1,7 @@
+##10.4.0
+
+Add music folder support to get_album_list2
+
 ##10.3.0
 
 Add methods for newest end points in the spec and the necessary types for them.
