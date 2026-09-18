@@ -18,7 +18,7 @@ along with py-opensonic.  If not, see <http://www.gnu.org/licenses/>
 from hashlib import md5
 from netrc import netrc
 import os
-from urllib.parse import urlencode
+from yarl import URL
 
 import aiohttp
 from aiohttp import ClientResponse
@@ -2579,7 +2579,9 @@ class AsyncConnection:
         method = 'stream'
         if self._use_views:
             method += '.view'
-        url = f"{self._base_url}:{self._port}/{self._server_path}/{method}"
+        base = URL(self._base_url)
+        url = URL.build(scheme=base.scheme, host=base.host or "", port=self._port,
+                        path=f"/{self._server_path}/{method}")
 
         q = self._get_query_dict({'id': sid, 'maxBitRate': max_bit_rate,
             'format': tformat, 'timeOffset': time_offset, 'size': size,
@@ -2590,8 +2592,8 @@ class AsyncConnection:
         params = self._stringify_qdict(qdict)
 
         if self._use_get:
-            return f"{url}?{urlencode(params)}", {}
-        return url, params
+            return str(url.with_query(params)), {}
+        return str(url), params
 
 
     async def stream(self, sid:str, max_bit_rate:int=0, tformat:str|None=None,
