@@ -1,3 +1,7 @@
+##10.4.1
+
+Fix get_stream_url method to not include default port numbers for protocols
+
 ##10.4.0
 
 Add music folder support to get_album_list2
