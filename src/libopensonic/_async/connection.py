@@ -1249,7 +1249,7 @@ class AsyncConnection:
         return Lyrics.from_dict(dres['lyrics'])
 
 
-    async def get_lyrics_by_song_id(self, song_id:str) -> list[StructuredLyrics]:
+    async def get_lyrics_by_song_id(self, song_id:str, enhanced:bool=False) -> list[StructuredLyrics]:
         """Retrieve all structured lyrics for a given song.
 
         Lyrics may come from embedded tags (SYLT/USLT), LRC file, or any
@@ -1260,6 +1260,10 @@ class AsyncConnection:
 
         Args:
             song_id: The ID of the requested song.
+            enhanced: Request word-level cue data from servers that support
+                the OpenSubsonic lyrics v2 extension. When True, the response
+                may include cueLine entries in addition to the line data.
+                Defaults to False, which keeps the version 1 response.
 
         Returns:
             A list of media.StructuredLyrics objects.
@@ -1269,7 +1273,7 @@ class AsyncConnection:
         """
         method = 'getLyricsBySongId'
 
-        q = self._get_query_dict({'id': song_id})
+        q = self._get_query_dict({'id': song_id, 'enhanced': True if enhanced else None})
 
         res = await self._do_request(method, q)
         dres = await self._handle_info_res(res)
