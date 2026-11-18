@@ -1694,6 +1694,62 @@ class TestLyrics:
         assert len(result) == 1
         assert isinstance(result[0], StructuredLyrics)
 
+    @pytest.mark.asyncio
+    async def test_get_lyrics_by_song_id_enhanced(self, conn, mock_session, mock_response):
+        """Test get_lyrics_by_song_id asks for word-level cues when enhanced."""
+        set_json_response(mock_response, make_response({"lyricsList": {}}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.get_lyrics_by_song_id("song-1", enhanced=True)
+
+        data = mock_session.post.call_args.kwargs["data"]
+        assert data["enhanced"] == "true"
+
+    @pytest.mark.asyncio
+    async def test_get_lyrics_by_song_id_defaults_to_line_level(self, conn, mock_session, mock_response):
+        """Test get_lyrics_by_song_id omits enhanced unless requested."""
+        set_json_response(mock_response, make_response({"lyricsList": {}}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.get_lyrics_by_song_id("song-1")
+
+        data = mock_session.post.call_args.kwargs["data"]
+        assert "enhanced" not in data
+
+    @pytest.mark.asyncio
+    async def test_get_lyrics_by_song_id_with_cues(self, conn, mock_session, mock_response):
+        """Test get_lyrics_by_song_id parses word-level cue data."""
+        lyrics = {
+            "lyricsList": {
+                "structuredLyrics": [{
+                    "lang": "en",
+                    "synced": True,
+                    "line": [{"value": "We're no strangers to love", "start": 18890}],
+                    "cueLine": [{
+                        "index": 0,
+                        "start": 18890,
+                        "end": 22820,
+                        "value": "We're no strangers to love",
+                        "cue": [
+                            {"start": 18890, "end": 19250, "byteStart": 0,
+                             "byteEnd": 5, "value": "We're "},
+                            {"start": 19250, "end": 19530, "byteStart": 6,
+                             "byteEnd": 8, "value": "no "},
+                        ],
+                    }],
+                }]
+            }
+        }
+        set_json_response(mock_response, make_response(lyrics))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        result = await conn.get_lyrics_by_song_id("song-1", enhanced=True)
+
+        cue_line = result[0].cue_line[0]
+        assert cue_line.index == 0
+        assert [cue.value for cue in cue_line.cue] == ["We're ", "no "]
+        assert cue_line.cue[1].byte_start == 6
+
 
 # ============================================================================
 # NOW PLAYING / SCROBBLE / PLAY QUEUE
