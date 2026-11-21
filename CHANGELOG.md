@@ -1,3 +1,9 @@
+##11.0.0
+
+Support new enhanced lyrics (thanks Schnurzel700!)
+Bring library up to date with latest specification.
+Change all documentation links to new github.io pages.
+
 ##10.4.1
 
 Fix get_stream_url method to not include default port numbers for protocols
