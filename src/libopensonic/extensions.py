@@ -26,7 +26,7 @@ class Extensions:
         if Extensions.PLAYBACK_REPORT in exts:
             await conn.report_playback(...)
 
-    Docs: https://opensubsonic.netlify.app/docs/extensions/
+    Docs: https://opensubsonic.github.io/docs/extensions/
     """
 
     API_KEY_AUTHENTICATION = "apiKeyAuthentication"

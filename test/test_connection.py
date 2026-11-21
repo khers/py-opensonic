@@ -10,7 +10,7 @@ from libopensonic._async.connection import API_VERSION
 from libopensonic.media.media_types import (
     Album, AlbumID3, AlbumInfo, ArtistInfo, ArtistInfo2, ArtistWithAlbumsID3, Artists, Bookmark, ChatMessage, Child, Directory,
     Genre, Indexes, InternetRadioStation, JukeboxPlaylist, JukeboxStatus,
-    Lyrics, MusicFolder, NowPlayingEntry, OpenSubsonicExtension, Playlist,
+    License, Lyrics, MusicFolder, NowPlayingEntry, OpenSubsonicExtension, Playlist,
     PlayQueue, PlayQueueByIndex, PodcastChannel, PodcastEpisode, PodcastStatus,
     ScanStatus, SearchResult2, SearchResult3, Share, SonicMatch, Starred,
     Starred2, StructuredLyrics, TokenInfo, TranscodeDecision, User,
@@ -500,6 +500,17 @@ class TestPlaylistMethods:
             song_indices_to_remove=[0]
         )
         assert result is True
+        assert "public" not in mock_session.post.call_args.kwargs["data"]
+
+    @pytest.mark.asyncio
+    async def test_update_playlist_public(self, conn, mock_session, mock_response):
+        """Test update_playlist sends public=false rather than dropping it."""
+        set_json_response(mock_response, make_response({}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.update_playlist(lid="pl-123", public=False)
+
+        assert mock_session.post.call_args.kwargs["data"]["public"] == "false"
 
 
 # ============================================================================
@@ -697,6 +708,17 @@ class TestShareMethods:
             description="Updated description"
         )
         assert result is True
+        assert "expires" not in mock_session.post.call_args.kwargs["data"]
+
+    @pytest.mark.asyncio
+    async def test_update_share_expires(self, conn, mock_session, mock_response):
+        """Test update_share sends expires in milliseconds."""
+        set_json_response(mock_response, make_response({}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.update_share(shid="sh-123", expires=1700000000)
+
+        assert mock_session.post.call_args.kwargs["data"]["expires"] == "1700000000000"
 
 
 # ============================================================================
@@ -917,6 +939,29 @@ class TestMediaRetrieval:
 
         result = await conn.get_artists()
         assert isinstance(result, Artists)
+        assert "musicFolderId" not in mock_session.post.call_args.kwargs["data"]
+
+    @pytest.mark.asyncio
+    async def test_get_artists_music_folder(self, conn, mock_session, mock_response):
+        """Test get_artists sends musicFolderId."""
+        set_json_response(mock_response, make_response({"artists": {"ignoredArticles": ""}}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.get_artists(music_folder_id="mf-1")
+
+        assert mock_session.post.call_args.kwargs["data"]["musicFolderId"] == "mf-1"
+
+    @pytest.mark.asyncio
+    async def test_get_license(self, conn, mock_session, mock_response):
+        """Test get_license unwraps the license element."""
+        set_json_response(mock_response, make_response(
+            {"license": {"valid": True, "email": "a@b.c"}}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        result = await conn.get_license()
+
+        assert isinstance(result, License)
+        assert result.valid is True
 
     @pytest.mark.asyncio
     async def test_get_song(self, conn, mock_session, mock_response):
@@ -1153,6 +1198,27 @@ class TestAlbumSongLists:
 
         result = await conn.get_top_songs("Artist Name", count=5)
         assert len(result) == 1
+
+    @pytest.mark.asyncio
+    async def test_get_top_songs_by_id(self, conn, mock_session, mock_response):
+        """Test get_top_songs sends id and omits artist when given artist_id."""
+        set_json_response(mock_response, make_response({"topSongs": {}}))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        await conn.get_top_songs(artist_id="ar-1")
+
+        data = mock_session.post.call_args.kwargs["data"]
+        assert data["id"] == "ar-1"
+        assert "artist" not in data
+
+    @pytest.mark.asyncio
+    async def test_get_top_songs_requires_artist_or_id(self, conn, mock_session):
+        """Test get_top_songs rejects a call with neither artist nor artist_id."""
+        mock_session.post = AsyncMock()
+
+        with pytest.raises(errors.ArgumentError):
+            await conn.get_top_songs()
+        mock_session.post.assert_not_called()
 
 
 # ============================================================================
@@ -1750,6 +1816,27 @@ class TestLyrics:
         assert [cue.value for cue in cue_line.cue] == ["We're ", "no "]
         assert cue_line.cue[1].byte_start == 6
 
+    @pytest.mark.asyncio
+    async def test_get_lyrics_by_song_id_line_end(self, conn, mock_session, mock_response):
+        """Test line.end is parsed when present and None when omitted."""
+        lyrics = {
+            "lyricsList": {
+                "structuredLyrics": [{
+                    "lang": "en",
+                    "synced": True,
+                    "line": [{"value": "Timed", "start": 2747, "end": 6214},
+                             {"value": "Open-ended", "start": 6214}],
+                }]
+            }
+        }
+        set_json_response(mock_response, make_response(lyrics))
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        lines = (await conn.get_lyrics_by_song_id("song-1", enhanced=True))[0].line
+
+        assert lines[0].end == 6214
+        assert lines[1].end is None
+
 
 # ============================================================================
 # NOW PLAYING / SCROBBLE / PLAY QUEUE
@@ -1983,6 +2070,30 @@ class TestErrorHandling:
 
         with pytest.raises(errors.SonicError):
             await conn.ping()
+
+    @pytest.mark.parametrize("code, exc", [
+        (41, errors.TokenAuthNotSupportedError),
+        (42, errors.AuthMechanismNotSupportedError),
+        (43, errors.ConflictingAuthError),
+        (44, errors.InvalidApiKeyError),
+    ])
+    @pytest.mark.asyncio
+    async def test_auth_error_codes(self, conn, mock_session, mock_response, code, exc):
+        """Test codes 41-44 raise their own type, still catchable as CredentialError."""
+        error_response = {
+            "subsonic-response": {
+                "status": "failed",
+                "version": API_VERSION,
+                "error": {"code": code, "message": "auth failure"}
+            }
+        }
+        set_json_response(mock_response, error_response)
+        mock_session.post = AsyncMock(return_value=mock_response)
+
+        with pytest.raises(exc) as info:
+            await conn.ping()
+        assert type(info.value) is exc
+        assert isinstance(info.value, errors.CredentialError)
 
 
 # ============================================================================

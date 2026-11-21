@@ -49,7 +49,7 @@ setup(name='py-opensonic',
     author_email='eric@munsonfam.org',
     url='https://github.com/khers/py-opensonic',
     description='A python wrapper library for the Open Subsonic REST API.  '
-        'https://opensubsonic.netlify.app/',
+        'https://opensubsonic.github.io/',
     long_description=long_description,
     long_description_content_type='text/markdown',
     package_dir={'': 'src'},

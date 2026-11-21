@@ -43,6 +43,7 @@ from .media_types import ItemDate as ItemDate
 from .media_types import ItemGenre as ItemGenre
 from .media_types import JukeboxPlaylist as JukeboxPlaylist
 from .media_types import JukeboxStatus as JukeboxStatus
+from .media_types import License as License
 from .media_types import Line as Line
 from .media_types import Lyrics as Lyrics
 from .media_types import LyricsAgent as LyricsAgent

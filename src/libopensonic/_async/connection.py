@@ -28,7 +28,7 @@ from ..media.media_types import (Album, AlbumID3, AlbumID3WithSongs, AlbumInfo,
                                 ArtistInfo, ArtistInfo2, ArtistWithAlbumsID3, Artists,
                                 Bookmark, ChatMessage, Child, Directory, Error, Genre,
                                 Indexes, InternetRadioStation, JukeboxPlaylist, JukeboxStatus,
-                                Lyrics, MusicFolder, NowPlayingEntry, OpenSubsonicExtension,
+                                License, Lyrics, MusicFolder, NowPlayingEntry, OpenSubsonicExtension,
                                 Playlist, PlayQueue, PlayQueueByIndex, PodcastChannel,
                                 PodcastEpisode, ScanStatus, SearchResult2, SearchResult3,
                                 Share, SonicMatch, Starred, Starred2,
@@ -202,7 +202,7 @@ class AsyncConnection:
         """Add a message to the chat log.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/addchatmessage/
+        Docs: https://opensubsonic.github.io/docs/endpoints/addchatmessage/
 
         Args:
             message: The message to add.
@@ -229,7 +229,7 @@ class AsyncConnection:
         The user performing this action must have admin privileges.
 
         Since: 1.1.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/changepassword/
+        Docs: https://opensubsonic.github.io/docs/endpoints/changepassword/
 
         Args:
             username: The username whose password is being changed.
@@ -261,7 +261,7 @@ class AsyncConnection:
         Bookmarks are personal and not visible to other users.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createbookmark/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createbookmark/
 
         Args:
             mid: The ID of the media file to bookmark. If a bookmark already
@@ -291,7 +291,7 @@ class AsyncConnection:
         """Create an internet radio station.
 
         Since: 1.16.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createinternetradiostation/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createinternetradiostation/
 
         Args:
             stream_url: The stream URL for the station.
@@ -322,7 +322,7 @@ class AsyncConnection:
         If updating, playlist_id is required. If creating, name is required.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createplaylist/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createplaylist/
 
         Args:
             playlist_id: The ID of the playlist to update.
@@ -361,7 +361,7 @@ class AsyncConnection:
         The user must be authorized for Podcast administration.
 
         Since: 0.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createpodcastchannel/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createpodcastchannel/
 
         Args:
             url: The URL of the Podcast to add.
@@ -391,7 +391,7 @@ class AsyncConnection:
         share files with anyone).
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createshare/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createshare/
 
         Args:
             shids: A list of IDs of songs, albums or videos to share.
@@ -428,7 +428,7 @@ class AsyncConnection:
         """Create a new Subsonic user.
 
         Since: 1.1.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/createuser/
+        Docs: https://opensubsonic.github.io/docs/endpoints/createuser/
 
         Args:
             username: The username of the new user.
@@ -482,7 +482,7 @@ class AsyncConnection:
         Other users' bookmarks are not affected.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deletebookmark/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deletebookmark/
 
         Args:
             mid: The ID of the media file to delete the bookmark from.
@@ -507,7 +507,7 @@ class AsyncConnection:
         """Delete an internet radio station.
 
         Since: 1.16.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deleteinternetradiostation/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deleteinternetradiostation/
 
         Args:
             iid: The ID of the station to delete.
@@ -534,7 +534,7 @@ class AsyncConnection:
         The user must be authorized for Podcast administration.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deletepodcastchannel/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deletepodcastchannel/
 
         Args:
             pid: The ID of the Podcast channel to delete.
@@ -561,7 +561,7 @@ class AsyncConnection:
         The user must be authorized for Podcast administration.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deletepodcastepisode/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deletepodcastepisode/
 
         Args:
             pid: The ID of the Podcast episode to delete.
@@ -588,7 +588,7 @@ class AsyncConnection:
         Requires admin rights.
 
         Since: 1.3.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deleteuser/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deleteuser/
 
         Args:
             username: The username of the user to delete.
@@ -613,7 +613,7 @@ class AsyncConnection:
         """Delete a saved playlist.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deleteplaylist/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deleteplaylist/
 
         Args:
             pid: ID of the playlist to delete, as obtained by get_playlists().
@@ -636,7 +636,7 @@ class AsyncConnection:
         """Download a given music file.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/download/
+        Docs: https://opensubsonic.github.io/docs/endpoints/download/
 
         Args:
             sid: The ID of the music file to download.
@@ -662,7 +662,7 @@ class AsyncConnection:
         The user must be authorized for Podcast administration.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/downloadpodcastepisode/
+        Docs: https://opensubsonic.github.io/docs/endpoints/downloadpodcastepisode/
 
         Args:
             pid: The ID of the Podcast episode to download.
@@ -687,7 +687,7 @@ class AsyncConnection:
         """Delete an existing share.
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/deleteshare/
+        Docs: https://opensubsonic.github.io/docs/endpoints/deleteshare/
 
         Args:
             shid: The ID of the share to delete.
@@ -712,7 +712,7 @@ class AsyncConnection:
         """Return the info and songs for an album using ID3 tags.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getalbum/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getalbum/
 
         Args:
             album_id: The album ID.
@@ -787,7 +787,7 @@ class AsyncConnection:
         """Return a list of albums filtered by the given type.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getalbumlist/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getalbumlist/
 
         Args:
             ltype: The list type. One of: random, newest, highest, frequent,
@@ -830,7 +830,7 @@ class AsyncConnection:
         Similar to get_album_list but uses ID3 tags for organization.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getalbumlist2/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getalbumlist2/
 
         Args:
             ltype: The list type. One of: random, newest, highest, frequent,
@@ -868,7 +868,7 @@ class AsyncConnection:
         """Return the info and albums for an artist using ID3 tags.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getartist/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getartist/
 
         Args:
             artist_id: The artist ID.
@@ -889,13 +889,16 @@ class AsyncConnection:
         return ArtistWithAlbumsID3.from_dict(dres['artist'])
 
 
-    async def get_artists(self) -> Artists:
+    async def get_artists(self, music_folder_id:str|None=None) -> Artists:
         """Return all artists, organized using ID3 tags.
 
         Similar to get_indexes() but uses ID3 tags to determine the artist.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getartists/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getartists/
+
+        Args:
+            music_folder_id: Only return artists in this music folder.
 
         Returns:
             A media.Artists object.
@@ -904,8 +907,9 @@ class AsyncConnection:
             errors.SonicError: On failure.
         """
         method = 'getArtists'
+        q = self._get_query_dict({'musicFolderId': music_folder_id})
 
-        res = await self._do_request(method)
+        res = await self._do_request(method, q)
         dres = await self._handle_info_res(res)
         self._check_status(dres)
 
@@ -917,7 +921,7 @@ class AsyncConnection:
         """Return biography, image URLs, and similar artists for an artist.
 
         Since: 1.11.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getartistinfo/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getartistinfo/
 
         Args:
             aid: The ID of the artist, album or song.
@@ -949,7 +953,7 @@ class AsyncConnection:
         Similar to get_artist_info() but organizes music according to ID3 tags.
 
         Since: 1.11.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getartistinfo2/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getartistinfo2/
 
         Args:
             aid: The ID of the artist, album or song.
@@ -978,7 +982,7 @@ class AsyncConnection:
         """Return the avatar image for a user.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getavatar/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getavatar/
 
         Args:
             username: The user to retrieve the avatar for.
@@ -1006,7 +1010,7 @@ class AsyncConnection:
         A bookmark is a saved position within a media file.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getbookmarks/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getbookmarks/
 
         Returns:
             A list of media.Bookmark objects.
@@ -1056,7 +1060,7 @@ class AsyncConnection:
         Note: All times returned are in milliseconds since the Unix epoch.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getchatmessages/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getchatmessages/
 
         Args:
             since: Only return messages newer than this unix timestamp.
@@ -1083,7 +1087,7 @@ class AsyncConnection:
         """Return a cover art image.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getcoverart/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getcoverart/
 
         Args:
             aid: ID string for the cover art image to download.
@@ -1108,7 +1112,7 @@ class AsyncConnection:
         """Return all genres.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getgenres/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getgenres/
 
         Returns:
             A list of media.Genre objects.
@@ -1130,7 +1134,7 @@ class AsyncConnection:
         """Return an indexed structure of all artists.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getindexes/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getindexes/
 
         Args:
             music_folder_id: If specified, only return artists for this folder.
@@ -1159,7 +1163,7 @@ class AsyncConnection:
         """Return all internet radio stations.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getinternetradiostations/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getinternetradiostations/
 
         Returns:
             A list of media.InternetRadioStation objects.
@@ -1180,15 +1184,14 @@ class AsyncConnection:
                 for i in dres['internetRadioStations']['internetRadioStation']]
 
 
-    async def get_license(self) -> dict:
+    async def get_license(self) -> License:
         """Return details about the software license.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getlicense/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getlicense/
 
         Returns:
-            A dict containing license details including date, email, key and
-            validity status.
+            A media.License object.
 
         Raises:
             errors.SonicError: On failure.
@@ -1198,7 +1201,7 @@ class AsyncConnection:
         res = await self._do_request(method)
         dres = await self._handle_info_res(res)
         self._check_status(dres)
-        return dres
+        return License.from_dict(dres['license'])
 
 
     async def token_info(self) -> TokenInfo:
@@ -1207,7 +1210,7 @@ class AsyncConnection:
         Requires apiKey authentication (api_key parameter).
 
         Since: OpenSubsonic 1 (apiKeyAuthentication extension)
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/tokeninfo/
+        Docs: https://opensubsonic.github.io/docs/endpoints/tokeninfo/
 
         Returns:
             A media.TokenInfo object.
@@ -1227,7 +1230,7 @@ class AsyncConnection:
         """Search for and return lyrics for a given song.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getlyrics/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getlyrics/
 
         Args:
             artist: The artist name.
@@ -1256,7 +1259,7 @@ class AsyncConnection:
         other external source.
 
         Since: Open Subsonic ver 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getlyricsbysongid/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getlyricsbysongid/
 
         Args:
             song_id: The ID of the requested song.
@@ -1289,7 +1292,7 @@ class AsyncConnection:
         Typically used to get albums for an artist or songs for an album.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getindexes/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getindexes/
 
         Args:
             mid: The string ID that uniquely identifies the folder. Obtained
@@ -1313,7 +1316,7 @@ class AsyncConnection:
         """Return all configured music folders.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getmusicfolders/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getmusicfolders/
 
         Returns:
             A list of media.MusicFolder objects.
@@ -1335,7 +1338,7 @@ class AsyncConnection:
         """Return the most recently published Podcast episodes.
 
         Since: 1.13.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getnewestpodcasts/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getnewestpodcasts/
 
         Args:
             count: The number of episodes to return.
@@ -1362,7 +1365,7 @@ class AsyncConnection:
         """Return info about a specific podcast episode.
 
         Since: OpenSubsonic 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getpodcastepisode/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getpodcastepisode/
 
         Args:
             pid: The podcast episode ID.
@@ -1408,7 +1411,7 @@ class AsyncConnection:
         """List the OpenSubsonic extensions supported by this server.
 
         Since: OpenSubsonic ver 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getopensubsonicextensions/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getopensubsonicextensions/
 
         Returns:
             A list of media.OpenSubsonicExtension objects.
@@ -1454,7 +1457,7 @@ class AsyncConnection:
         for the full object.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getplaylists/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getplaylists/
 
         Args:
             username: If specified, return playlists for this user rather than
@@ -1486,7 +1489,7 @@ class AsyncConnection:
         move between clients while retaining the same play queue.
 
         Since: 1.12.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getplayqueue/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getplayqueue/
 
         Returns:
             A media.PlayQueue object.
@@ -1506,7 +1509,7 @@ class AsyncConnection:
         """Return the saved index-based play queue state for the current user.
 
         Since: OpenSubsonic 1 (indexBasedQueue extension)
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getplayqueuebyindex/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getplayqueuebyindex/
 
         Returns:
             A media.PlayQueueByIndex object.
@@ -1526,7 +1529,7 @@ class AsyncConnection:
         """Return all podcast channels the server subscribes to.
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getpodcasts/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getpodcasts/
 
         Args:
             inc_episodes: Whether to include Podcast episodes in the result.
@@ -1593,7 +1596,7 @@ class AsyncConnection:
         The 'count' field is the total number of items to be scanned.
 
         Since: 1.15.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getscanstatus/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getscanstatus/
 
         Returns:
             A media.ScanStatus object.
@@ -1613,7 +1616,7 @@ class AsyncConnection:
         """Return information about shared media this user is allowed to manage.
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getshares/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getshares/
 
         Returns:
             A list of media.Share objects.
@@ -1637,7 +1640,7 @@ class AsyncConnection:
         Uses data from last.fm. Typically used for artist radio features.
 
         Since: 1.11.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getsimilarsongs/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getsimilarsongs/
 
         Args:
             iid: The artist, album, or song ID.
@@ -1667,7 +1670,7 @@ class AsyncConnection:
         Similar to get_similar_songs() but organizes music according to ID3 tags.
 
         Since: 1.11.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getsimilarsongs2/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getsimilarsongs2/
 
         Args:
             iid: The artist, album, or song ID.
@@ -1699,7 +1702,7 @@ class AsyncConnection:
         returns -1 if similarity is not available.
 
         Since: OpenSubsonic 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getsonicsimilartracks/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getsonicsimilartracks/
 
         Args:
             song_id: The ID of the reference song.
@@ -1732,7 +1735,7 @@ class AsyncConnection:
         preceding song.
 
         Since: OpenSubsonic 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/findsonicpath/
+        Docs: https://opensubsonic.github.io/docs/endpoints/findsonicpath/
 
         Args:
             start_song_id: The ID of the starting song.
@@ -1762,7 +1765,7 @@ class AsyncConnection:
         """Return the info for a song, organized using ID3 tags.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getsong/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getsong/
 
         Args:
             sid: The song ID.
@@ -1788,7 +1791,7 @@ class AsyncConnection:
         """Return songs in a given genre.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getsongsbygenre/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getsongsbygenre/
 
         Args:
             genre: The genre, as returned by get_genres().
@@ -1823,7 +1826,7 @@ class AsyncConnection:
         """Return starred songs, albums and artists.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getstarred/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getstarred/
 
         Args:
             music_folder_id: Only return results from this music folder.
@@ -1853,7 +1856,7 @@ class AsyncConnection:
         Similar to get_starred() but uses ID3 tags for organization.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getstarred2/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getstarred2/
 
         Args:
             music_folder_id: Only return results from this music folder.
@@ -1877,25 +1880,31 @@ class AsyncConnection:
         return Starred2.from_dict(dres['starred2'])
 
 
-    async def get_top_songs(self, artist:str, count:int=50) -> list[Child]:
+    async def get_top_songs(self, artist:str|None=None, count:int=50,
+                            artist_id:str|None=None) -> list[Child]:
         """Return the top songs for a given artist.
 
         Since: 1.13.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/gettopsongs/
+        Docs: https://opensubsonic.github.io/docs/endpoints/gettopsongs/
 
         Args:
             artist: The artist name to get songs for.
             count: The number of songs to return.
+            artist_id: The artist ID, used instead of artist. Requires the
+                topSongsByArtistId extension.
 
         Returns:
             A list of media.Child objects.
 
         Raises:
+            errors.ArgumentError: If neither artist nor artist_id is given.
             errors.SonicError: On failure.
         """
         method = 'getTopSongs'
+        if artist is None and artist_id is None:
+            raise errors.ArgumentError('One of artist or artist_id is required')
 
-        q = {'artist': artist, 'count': count}
+        q = self._get_query_dict({'artist': artist, 'id': artist_id, 'count': count})
 
         res = await self._do_request(method, q)
         dres = await self._handle_info_res(res)
@@ -1912,7 +1921,7 @@ class AsyncConnection:
         You can only retrieve your own user unless you have admin privileges.
 
         Since: 1.3.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getuser/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getuser/
 
         Args:
             username: The username to retrieve.
@@ -1937,7 +1946,7 @@ class AsyncConnection:
         """Return a list of all users.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/getusers/
+        Docs: https://opensubsonic.github.io/docs/endpoints/getusers/
 
         Returns:
             A list of media.User objects.
@@ -2005,7 +2014,7 @@ class AsyncConnection:
         is sent as the JSON request body.
 
         Since: OpenSubsonic 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/gettranscodedecision/
+        Docs: https://opensubsonic.github.io/docs/endpoints/gettranscodedecision/
 
         Args:
             media_id: The ID of the media to evaluate.
@@ -2046,7 +2055,7 @@ class AsyncConnection:
         Do not attempt to construct transcodeParams manually.
 
         Since: OpenSubsonic 1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/gettranscodestream/
+        Docs: https://opensubsonic.github.io/docs/endpoints/gettranscodestream/
 
         Args:
             media_id: The ID of the media to transcode.
@@ -2113,7 +2122,7 @@ class AsyncConnection:
         added in API version 1.7.0.
 
         Since: 1.2.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/jukeboxcontrol/
+        Docs: https://opensubsonic.github.io/docs/endpoints/jukeboxcontrol/
 
         Args:
             action: The operation to perform. One of: get, start, stop, skip,
@@ -2163,7 +2172,7 @@ class AsyncConnection:
         """Check whether the server is alive.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/ping/
+        Docs: https://opensubsonic.github.io/docs/endpoints/ping/
 
         Returns:
             True if the server is alive.
@@ -2190,7 +2199,7 @@ class AsyncConnection:
         The user must be authorized for Podcast administration.
 
         Since: 1.9.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/refreshpodcasts/
+        Docs: https://opensubsonic.github.io/docs/endpoints/refreshpodcasts/
 
         Returns:
             True on success.
@@ -2215,7 +2224,7 @@ class AsyncConnection:
         state values are "starting", "playing", "paused", and "stopped".
 
         Since: OpenSubsonic 1 (playbackReport extension)
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/reportplayback/
+        Docs: https://opensubsonic.github.io/docs/endpoints/reportplayback/
 
         Args:
             media_id: The ID of the media being played.
@@ -2251,7 +2260,7 @@ class AsyncConnection:
         between clients while retaining the same play queue.
 
         Since: 0.12.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/saveplayqueue/
+        Docs: https://opensubsonic.github.io/docs/endpoints/saveplayqueue/
 
         Args:
             qids: The list of song IDs in the play queue.
@@ -2287,7 +2296,7 @@ class AsyncConnection:
         0-based index into the list.
 
         Since: OpenSubsonic 1 (indexBasedQueue extension)
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/saveplayqueuebyindex/
+        Docs: https://opensubsonic.github.io/docs/endpoints/saveplayqueuebyindex/
 
         Args:
             ids: Song IDs in the queue, in order.
@@ -2322,7 +2331,7 @@ class AsyncConnection:
         and makes the song appear in the "Now playing" page.
 
         Since: 1.5.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/scrobble/
+        Docs: https://opensubsonic.github.io/docs/endpoints/scrobble/
 
         Args:
             sid: The ID of the file to scrobble.
@@ -2368,7 +2377,7 @@ class AsyncConnection:
         Supports paging through the result.
 
         Since: 1.4.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/search2/
+        Docs: https://opensubsonic.github.io/docs/endpoints/search2/
 
         Args:
             query: The search query.
@@ -2408,7 +2417,7 @@ class AsyncConnection:
         Works the same as search2 but uses ID3 tags for organization.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/search3/
+        Docs: https://opensubsonic.github.io/docs/endpoints/search3/
 
         Args:
             query: The search query.
@@ -2444,7 +2453,7 @@ class AsyncConnection:
         """Set the rating for a music file.
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/setrating/
+        Docs: https://opensubsonic.github.io/docs/endpoints/setrating/
 
         Args:
             item_id: The ID of the item (song/artist/album) to rate.
@@ -2481,7 +2490,7 @@ class AsyncConnection:
         """Attach a star to songs, albums or artists.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/star/
+        Docs: https://opensubsonic.github.io/docs/endpoints/star/
 
         Args:
             sids: A list of song IDs to star.
@@ -2521,7 +2530,7 @@ class AsyncConnection:
         The 'count' field starts at 0 and ends at the total items scanned.
 
         Since: 1.15.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/startscan/
+        Docs: https://opensubsonic.github.io/docs/endpoints/startscan/
 
         Returns:
             A media.ScanStatus object.
@@ -2557,7 +2566,7 @@ class AsyncConnection:
         needing to come back through this library for each one.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/stream/
+        Docs: https://opensubsonic.github.io/docs/endpoints/stream/
 
         Args:
             sid: The ID of the music file to stream.
@@ -2606,7 +2615,7 @@ class AsyncConnection:
         """Stream a given music file.
 
         Since: 1.0.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/stream/
+        Docs: https://opensubsonic.github.io/docs/endpoints/stream/
 
         Args:
             sid: The ID of the music file to stream.
@@ -2654,7 +2663,7 @@ class AsyncConnection:
         The reverse of star().
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/unstar/
+        Docs: https://opensubsonic.github.io/docs/endpoints/unstar/
 
         Args:
             sids: A list of song IDs to unstar.
@@ -2692,7 +2701,7 @@ class AsyncConnection:
         """Update an existing internet radio station.
 
         Since: 1.16.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/updateinternetradiostation/
+        Docs: https://opensubsonic.github.io/docs/endpoints/updateinternetradiostation/
 
         Args:
             iid: The ID of the station to update.
@@ -2721,13 +2730,14 @@ class AsyncConnection:
 
     async def update_playlist(self, lid:str, name:str|None=None, comment:str|None=None,
                        song_ids_to_add:list[str]|None=None,
-                       song_indices_to_remove:list[int]|None=None) -> bool:
+                       song_indices_to_remove:list[int]|None=None,
+                       public:bool|None=None) -> bool:
         """Update a playlist.
 
         Only the owner of a playlist is allowed to update it.
 
         Since: 1.8.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/updateplaylist/
+        Docs: https://opensubsonic.github.io/docs/endpoints/updateplaylist/
 
         Args:
             lid: The playlist ID.
@@ -2736,6 +2746,7 @@ class AsyncConnection:
             song_ids_to_add: A list of song IDs to add to the playlist.
             song_indices_to_remove: Zero-based positions of songs to remove
                 from the playlist (not song IDs).
+            public: Whether the playlist is visible to all users.
 
         Returns:
             True on success.
@@ -2752,7 +2763,7 @@ class AsyncConnection:
             song_indices_to_remove = []
 
         q = self._get_query_dict({'playlistId': lid, 'name': name,
-            'comment': comment})
+            'comment': comment, 'public': public})
         list_map = {'songIdToAdd': song_ids_to_add,
             'songIndexToRemove': song_indices_to_remove}
         res = await self._do_request_with_lists(method, list_map, q)
@@ -2765,7 +2776,7 @@ class AsyncConnection:
         """Update the description and/or expiration date for an existing share.
 
         Since: 1.6.0
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/updateshare/
+        Docs: https://opensubsonic.github.io/docs/endpoints/updateshare/
 
         Args:
             shid: The ID of the share to update.
@@ -2781,7 +2792,7 @@ class AsyncConnection:
         method = 'updateShare'
 
         q = self._get_query_dict({'id': shid, 'description': description,
-            expires: self._ts2milli(int(expires or 0))})
+            'expires': self._ts2milli(int(expires)) if expires is not None else None})
 
         res = await self._do_request(method, q)
         dres = await self._handle_info_res(res)
@@ -2800,7 +2811,7 @@ class AsyncConnection:
         """Modify an existing Subsonic user.
 
         Since: 1.10.1
-        Docs: https://opensubsonic.netlify.app/docs/endpoints/updateuser/
+        Docs: https://opensubsonic.github.io/docs/endpoints/updateuser/
 
         Args:
             username: The username of the user to update.

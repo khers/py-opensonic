@@ -35,7 +35,7 @@ class DataItem(DataClassJSONMixin):
 @dataclass(kw_only=True)
 class AlbumID3(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/albumid3/
+    https://opensubsonic.github.io/docs/responses/albumid3/
     """
     id: str
     name: str
@@ -70,7 +70,7 @@ class AlbumID3(DataItem):
 @dataclass(kw_only=True)
 class AlbumID3WithSongs(AlbumID3):
     """
-    https://opensubsonic.netlify.app/docs/responses/albumid3withsongs/
+    https://opensubsonic.github.io/docs/responses/albumid3withsongs/
     """
     song: list[Child] | None = None
 
@@ -78,7 +78,7 @@ class AlbumID3WithSongs(AlbumID3):
 @dataclass(kw_only=True)
 class Album(AlbumID3):
     """
-    https://opensubsonic.netlify.app/docs/responses/album/
+    https://opensubsonic.github.io/docs/responses/album/
     This object is in the spec for backward compatibilty but, like AtristID3 and Artist,
     there is no difference in the required fields.
     """
@@ -87,7 +87,7 @@ class Album(AlbumID3):
 @dataclass(kw_only=True)
 class AlbumInfo(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/albuminfo/
+    https://opensubsonic.github.io/docs/responses/albuminfo/
     """
     notes: str | None = None
     music_brainz_id: Annotated[str | None, Alias("musicBrainzId")] = None
@@ -100,7 +100,7 @@ class AlbumInfo(DataItem):
 @dataclass(kw_only=True)
 class ArtistID3(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/artistid3/
+    https://opensubsonic.github.io/docs/responses/artistid3/
     """
     id: str
     name: str
@@ -111,12 +111,13 @@ class ArtistID3(DataItem):
     music_brainz_id: Annotated[str | None, Alias("musicBrainzId")] = None
     sort_name: Annotated[str | None, Alias("sortName")] = None
     roles: list[str] | None = None
+    disambiguation: str | None = None
 
 
 @dataclass(kw_only=True)
 class ArtistWithAlbumsID3(ArtistID3):
     """
-    https://opensubsonic.netlify.app/docs/responses/artistwithalbumsid3/
+    https://opensubsonic.github.io/docs/responses/artistwithalbumsid3/
     """
     album: list[AlbumID3] | None = None
 
@@ -124,7 +125,7 @@ class ArtistWithAlbumsID3(ArtistID3):
 @dataclass(kw_only=True)
 class Artist(ArtistID3):
     """
-    https://opensubsonic.netlify.app/docs/responses/artist/
+    https://opensubsonic.github.io/docs/responses/artist/
     """
     user_rating: Annotated[int | None, Alias("userRating")] = None
     average_rating: Annotated[float | None, Alias("averageRating")] = None
@@ -133,7 +134,7 @@ class Artist(ArtistID3):
 @dataclass(kw_only=True)
 class ArtistInfo(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/artistinfo/
+    https://opensubsonic.github.io/docs/responses/artistinfo/
     """
     biography: str | None = None
     music_brainz_id: Annotated[str | None, Alias("musicBrainzId")] = None
@@ -147,7 +148,7 @@ class ArtistInfo(DataItem):
 @dataclass(kw_only=True)
 class ArtistInfo2(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/artistinfo2/
+    https://opensubsonic.github.io/docs/responses/artistinfo2/
     """
     biography: str | None = None
     music_brainz_id: Annotated[str | None, Alias("musicBrainzId")] = None
@@ -161,7 +162,7 @@ class ArtistInfo2(DataItem):
 @dataclass(kw_only=True)
 class Artists(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/indexes/
+    https://opensubsonic.github.io/docs/responses/indexes/
     """
     ignored_articles: Annotated[str, Alias("ignoredArticles")]
     shortcut: list[Artist] | None = None
@@ -172,7 +173,7 @@ class Artists(DataItem):
 @dataclass(kw_only=True)
 class Bookmark(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/bookmark/
+    https://opensubsonic.github.io/docs/responses/bookmark/
     """
     position: int
     username: str
@@ -185,7 +186,7 @@ class Bookmark(DataItem):
 @dataclass(kw_only=True)
 class ChatMessage(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/chatmessage/
+    https://opensubsonic.github.io/docs/responses/chatmessage/
     """
     username: str
     time: int
@@ -195,7 +196,7 @@ class ChatMessage(DataItem):
 @dataclass(kw_only=True)
 class Movement(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/movement/
+    https://opensubsonic.github.io/docs/responses/movement/
     """
     name: str
     number: int | None = None
@@ -205,7 +206,7 @@ class Movement(DataItem):
 @dataclass(kw_only=True)
 class Work(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/work/
+    https://opensubsonic.github.io/docs/responses/work/
     """
     name: str
     music_brainz_id: Annotated[str | None, Alias("musicBrainzId")] = None
@@ -214,7 +215,7 @@ class Work(DataItem):
 @dataclass(kw_only=True)
 class Child(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/child/
+    https://opensubsonic.github.io/docs/responses/child/
     """
     id: str
     is_dir: Annotated[bool, Alias("isDir")]
@@ -275,7 +276,7 @@ class Child(DataItem):
 @dataclass(kw_only=True)
 class Contributor(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/contributor/
+    https://opensubsonic.github.io/docs/responses/contributor/
     """
     role: str
     artist: ArtistID3
@@ -285,7 +286,7 @@ class Contributor(DataItem):
 @dataclass(kw_only=True)
 class Directory(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/directory/
+    https://opensubsonic.github.io/docs/responses/directory/
     """
     id: str
     name: str
@@ -300,7 +301,7 @@ class Directory(DataItem):
 @dataclass(kw_only=True)
 class DiscTitle(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/disctitle/
+    https://opensubsonic.github.io/docs/responses/disctitle/
     """
     disc: int
     title: str
@@ -310,7 +311,7 @@ class DiscTitle(DataItem):
 @dataclass(kw_only=True)
 class Error(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/error/
+    https://opensubsonic.github.io/docs/responses/error/
     """
     code: int
     message: str | None = None
@@ -320,7 +321,7 @@ class Error(DataItem):
 @dataclass(kw_only=True)
 class Genre(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/genre/
+    https://opensubsonic.github.io/docs/responses/genre/
     """
     value: str
     song_count: Annotated[int, Alias("songCount")]
@@ -330,7 +331,7 @@ class Genre(DataItem):
 @dataclass(kw_only=True)
 class Index(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/index_/
+    https://opensubsonic.github.io/docs/responses/index_/
     """
     name: str
     artist: list[Artist] | None = None
@@ -339,7 +340,7 @@ class Index(DataItem):
 @dataclass(kw_only=True)
 class Indexes(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/indexes/
+    https://opensubsonic.github.io/docs/responses/indexes/
     """
     ignored_articles: Annotated[str, Alias("ignoredArticles")]
     last_modified: Annotated[int, Alias("lastModified")]
@@ -351,7 +352,7 @@ class Indexes(DataItem):
 @dataclass(kw_only=True)
 class IndexID3(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/indexid3/
+    https://opensubsonic.github.io/docs/responses/indexid3/
     """
     name: str
     artist: list[ArtistID3] | None = None
@@ -360,7 +361,7 @@ class IndexID3(DataItem):
 @dataclass(kw_only=True)
 class InternetRadioStation(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/internetradiostation/
+    https://opensubsonic.github.io/docs/responses/internetradiostation/
     """
     id: str
     name: str
@@ -372,7 +373,7 @@ class InternetRadioStation(DataItem):
 @dataclass(kw_only=True)
 class ItemDate(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/itemdate/
+    https://opensubsonic.github.io/docs/responses/itemdate/
     """
     year: int | None = None
     month: int | None = None
@@ -382,7 +383,7 @@ class ItemDate(DataItem):
 @dataclass(kw_only=True)
 class ItemGenre(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/itemgenre/
+    https://opensubsonic.github.io/docs/responses/itemgenre/
     """
     name: str
 
@@ -390,7 +391,7 @@ class ItemGenre(DataItem):
 @dataclass(kw_only=True)
 class JukeboxPlaylist(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/jukeboxplaylist/
+    https://opensubsonic.github.io/docs/responses/jukeboxplaylist/
     """
     current_index: Annotated[int, Alias("currentIndex")]
     playing: bool
@@ -402,7 +403,7 @@ class JukeboxPlaylist(DataItem):
 @dataclass(kw_only=True)
 class JukeboxStatus(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/jukeboxstatus/
+    https://opensubsonic.github.io/docs/responses/jukeboxstatus/
     """
     current_index: Annotated[int, Alias("currentIndex")]
     playing: bool
@@ -411,18 +412,30 @@ class JukeboxStatus(DataItem):
 
 
 @dataclass(kw_only=True)
+class License(DataItem):
+    """
+    https://opensubsonic.github.io/docs/responses/license/
+    """
+    valid: bool
+    email: str | None = None
+    license_expires: Annotated[str | None, Alias("licenseExpires")] = None
+    trial_expires: Annotated[str | None, Alias("trialExpires")] = None
+
+
+@dataclass(kw_only=True)
 class Line(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/line/
+    https://opensubsonic.github.io/docs/responses/line/
     """
     value: str
     start: float | None = None
+    end: float | None = None
 
 
 @dataclass(kw_only=True)
 class Lyrics(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/lyrics/
+    https://opensubsonic.github.io/docs/responses/lyrics/
     """
     value: str
     artist: str | None = None
@@ -432,7 +445,7 @@ class Lyrics(DataItem):
 @dataclass(kw_only=True)
 class MusicFolder(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/musicfolder/
+    https://opensubsonic.github.io/docs/responses/musicfolder/
     """
     id: int
     name: str | None = None
@@ -441,7 +454,7 @@ class MusicFolder(DataItem):
 @dataclass(kw_only=True)
 class NowPlayingEntry(Child):
     """
-    https://opensubsonic.netlify.app/docs/responses/nowplayingentry/
+    https://opensubsonic.github.io/docs/responses/nowplayingentry/
     """
     username: str
     minutes_ago: Annotated[int, Alias("minutesAgo")]
@@ -455,7 +468,7 @@ class NowPlayingEntry(Child):
 @dataclass(kw_only=True)
 class OpenSubsonicExtension(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/opensubsonicextension/
+    https://opensubsonic.github.io/docs/responses/opensubsonicextension/
     """
     name: str
     versions: list[int]
@@ -464,7 +477,7 @@ class OpenSubsonicExtension(DataItem):
 @dataclass(kw_only=True)
 class Playlist(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/playlistwithsongs/
+    https://opensubsonic.github.io/docs/responses/playlistwithsongs/
     """
     id: str
     name: str
@@ -485,7 +498,7 @@ class Playlist(DataItem):
 @dataclass(kw_only=True)
 class PlayQueue(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/playqueue/
+    https://opensubsonic.github.io/docs/responses/playqueue/
     """
     username: str
     changed: str
@@ -498,7 +511,7 @@ class PlayQueue(DataItem):
 @dataclass(kw_only=True)
 class PlayQueueByIndex(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/playqueuebyindex/
+    https://opensubsonic.github.io/docs/responses/playqueuebyindex/
     """
     username: str
     changed: str
@@ -511,7 +524,7 @@ class PlayQueueByIndex(DataItem):
 @dataclass(kw_only=True)
 class PodcastChannel(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/podcastchannel/
+    https://opensubsonic.github.io/docs/responses/podcastchannel/
     """
     id: str
     url: str
@@ -526,7 +539,7 @@ class PodcastChannel(DataItem):
 @dataclass(kw_only=True)
 class PodcastEpisode(Child):
     """
-    https://opensubsonic.netlify.app/docs/responses/podcastepisode/
+    https://opensubsonic.github.io/docs/responses/podcastepisode/
     """
     channel_id: Annotated[str, Alias("channelId")]
     status: PodcastStatus
@@ -536,7 +549,7 @@ class PodcastEpisode(Child):
 
 class PodcastStatus(Enum):
     """
-    https://opensubsonic.netlify.app/docs/responses/podcaststatus/
+    https://opensubsonic.github.io/docs/responses/podcaststatus/
     """
     new = "new"
     downloading = "downloading"
@@ -549,7 +562,7 @@ class PodcastStatus(Enum):
 @dataclass(kw_only=True)
 class RecordLabel(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/recordlabel/
+    https://opensubsonic.github.io/docs/responses/recordlabel/
     """
     name: str
 
@@ -557,7 +570,7 @@ class RecordLabel(DataItem):
 @dataclass(kw_only=True)
 class ReplayGain(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/replaygain/
+    https://opensubsonic.github.io/docs/responses/replaygain/
     """
     track_gain: Annotated[float | None, Alias("trackGain")] = None
     album_gain: Annotated[float | None, Alias("albumGain")] = None
@@ -570,7 +583,7 @@ class ReplayGain(DataItem):
 @dataclass(kw_only=True)
 class ScanStatus(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/scanstatus/
+    https://opensubsonic.github.io/docs/responses/scanstatus/
     """
     scanning: bool
     count: int | None = None
@@ -579,7 +592,7 @@ class ScanStatus(DataItem):
 @dataclass(kw_only=True)
 class SearchResult2(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/searchresult2/
+    https://opensubsonic.github.io/docs/responses/searchresult2/
     """
     artist: list[Artist] | None = None
     album: list[Child] | None = None
@@ -589,7 +602,7 @@ class SearchResult2(DataItem):
 @dataclass(kw_only=True)
 class SearchResult3(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/searchresult3/
+    https://opensubsonic.github.io/docs/responses/searchresult3/
     """
     artist: list[ArtistID3] | None = None
     album: list[AlbumID3] | None = None
@@ -599,7 +612,7 @@ class SearchResult3(DataItem):
 @dataclass(kw_only=True)
 class Share(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/share/
+    https://opensubsonic.github.io/docs/responses/share/
     """
     id: str
     url: str
@@ -615,7 +628,7 @@ class Share(DataItem):
 @dataclass(kw_only=True)
 class Starred(SearchResult2):
     """
-    https://opensubsonic.netlify.app/docs/responses/starred/
+    https://opensubsonic.github.io/docs/responses/starred/
     While named differently, this is the same as a search2 response
     """
 
@@ -623,7 +636,7 @@ class Starred(SearchResult2):
 @dataclass(kw_only=True)
 class Starred2(SearchResult3):
     """
-    https://opensubsonic.netlify.app/docs/responses/starred2/
+    https://opensubsonic.github.io/docs/responses/starred2/
     While named differently, this is the same as a search3 response
     """
 
@@ -631,7 +644,7 @@ class Starred2(SearchResult3):
 @dataclass(kw_only=True)
 class SonicMatch(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/sonicmatch/
+    https://opensubsonic.github.io/docs/responses/sonicmatch/
     """
     entry: Child
     similarity: float
@@ -640,7 +653,7 @@ class SonicMatch(DataItem):
 @dataclass(kw_only=True)
 class StreamDetails(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/streamdetails/
+    https://opensubsonic.github.io/docs/responses/streamdetails/
     """
     protocol: str
     container: str
@@ -655,7 +668,7 @@ class StreamDetails(DataItem):
 @dataclass(kw_only=True)
 class TranscodeDecision(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/transcodedecision/
+    https://opensubsonic.github.io/docs/responses/transcodedecision/
     """
     can_direct_play: Annotated[bool, Alias("canDirectPlay")]
     can_transcode: Annotated[bool, Alias("canTranscode")]
@@ -669,7 +682,7 @@ class TranscodeDecision(DataItem):
 @dataclass(kw_only=True)
 class Cue(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/cue/
+    https://opensubsonic.github.io/docs/responses/cue/
     """
     start: int
     byte_start: Annotated[int, Alias("byteStart")]
@@ -681,7 +694,7 @@ class Cue(DataItem):
 @dataclass(kw_only=True)
 class CueLine(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/cueline/
+    https://opensubsonic.github.io/docs/responses/cueline/
     """
     index: int
     value: str
@@ -694,7 +707,7 @@ class CueLine(DataItem):
 @dataclass(kw_only=True)
 class LyricsAgent(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/agent/
+    https://opensubsonic.github.io/docs/responses/agent/
     """
     id: str
     role: str
@@ -704,7 +717,7 @@ class LyricsAgent(DataItem):
 @dataclass(kw_only=True)
 class StructuredLyrics(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/structuredlyrics/
+    https://opensubsonic.github.io/docs/responses/structuredlyrics/
     """
     lang: str
     synced: bool
@@ -720,7 +733,7 @@ class StructuredLyrics(DataItem):
 @dataclass(kw_only=True)
 class TokenInfo(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/tokeninfo/
+    https://opensubsonic.github.io/docs/responses/tokeninfo/
     """
     username: str
 
@@ -728,7 +741,7 @@ class TokenInfo(DataItem):
 @dataclass(kw_only=True)
 class TopSongs(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/topsongs/
+    https://opensubsonic.github.io/docs/responses/topsongs/
     """
     song: list[Child] | None = None
 
@@ -736,7 +749,7 @@ class TopSongs(DataItem):
 @dataclass(kw_only=True)
 class User(DataItem):
     """
-    https://opensubsonic.netlify.app/docs/responses/user/
+    https://opensubsonic.github.io/docs/responses/user/
     """
     username: str
     scrobbling_enabled: Annotated[bool, Alias("scrobblingEnabled")]

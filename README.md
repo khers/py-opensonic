@@ -37,7 +37,7 @@ You can also install directly using *pip* or *easy_install*
 ## USAGE ##
 
 This library follows the REST API almost exactly (for now).  If you follow the
-documentation on https://opensubsonic.netlify.app/docs/ or you do a:
+documentation on https://opensubsonic.github.io/docs/ or you do a:
 
     pydoc libopensonic.connection
 
@@ -70,7 +70,7 @@ provided in the library:
 
     pydoc libopensonic.connection
 
-or the api docs on opensubsonic.netlify.app (listed above), you should be
+or the api docs on opensubsonic.github.io (listed above), you should be
 able to make use of your server without too much trouble.
 
 ## Async/Sync Cohabitation ##

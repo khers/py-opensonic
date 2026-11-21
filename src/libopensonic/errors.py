@@ -31,6 +31,22 @@ class CredentialError(SonicError):
     pass
 
 
+class TokenAuthNotSupportedError(CredentialError):
+    """Code 41. Despite the spec's wording, not LDAP-specific."""
+
+
+class AuthMechanismNotSupportedError(CredentialError):
+    """Code 42."""
+
+
+class ConflictingAuthError(CredentialError):
+    """Code 43."""
+
+
+class InvalidApiKeyError(CredentialError):
+    """Code 44."""
+
+
 class AuthError(SonicError):
     pass
 
@@ -55,6 +71,10 @@ ERR_CODE_MAP = {
     20: VersionError ,
     30: VersionError ,
     40: CredentialError ,
+    41: TokenAuthNotSupportedError ,
+    42: AuthMechanismNotSupportedError ,
+    43: ConflictingAuthError ,
+    44: InvalidApiKeyError ,
     50: AuthError ,
     60: LicenseError ,
     70: DataNotFoundError ,
